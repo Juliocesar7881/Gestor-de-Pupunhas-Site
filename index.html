@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Pupunha</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#1e293b"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gestor Pupunha">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgcng9IjIwIiBmaWxsPSIjMWUyOTNiIiAvPgogIDxjaXJjbGUgY3g9IjUwIiBjeT0iNDUiIHI9IjIwIiBmaWxsPSIjZmFjYzE1IiAvPgogIDxjaXJjbGUgY3g9IjM1IiBjeT0iNjUiIHI9IjE1IiBmaWxsPSIjZmJiZjI4IiAvPgogIDxjaXJjbGUgY3g9IjY1IiBjeT0iNjUiIHI9IjE1IiBmaWxsPSIjZmJiZjI4IiAvPgo8L3N2Zz4=">
+    <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIkdlc3RvciBkZSBQdXB1bmhhIiwKICAic2hvcnRfbmFtZSI6ICJQdXB1bmhhIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmMWRlNWUiLAogICJ0aGVtZV9jb2xvciI6ICIjMWUyOTNiIiwKICAiZGVzY3JpcHRpb24iOiAiT3JnYW5pemUgc3VhcyBjYXJnYXMgZSBjb250YWdlbnMgZGUgcHVwdW5oYSBjb20gZmFjaWxpZGFkZS4iLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUI0Yld4dWN6MDBjMjl1YS1FeFhHSmhaR1Z1WTJVbks0QUFoQUVBeUFBaURBa0FBaUJBQWlENEFBaUIyQUFpQkFnQUVCQVlBQUFwb0FBQUl6QUFBaVYyWW1GamEyVjVmRHBtYjI1TGdnQUFBQXVBRThQQnpVQUFZQUFCQUlBQVFBQUFZQUFBQUFBQUFRQUFBQUVBQVFBRUFBQUVBQXhEQUFBQUFBQ0FBQUFBQWdEQUFBQUFBQ0FBQUFBQUFRQUFBQVFBR0FBQUFBQWdFQUFBQUFCWUFFQUFBQUNVRUFBQUFDVVVBQUFBSUFnQUFDR2dFQUFBQUFNQUVBQUFBR2N3QUFBQWd3QUFBQUFDaGdBQUFBRkFnQUFBQUFCZ0VBQUFBQU1BRUFBQUFFQXdFQUFBQUJBQUVBQUFBQUFnQUFBQUFBQUFBQUFRQUFBQUFBQWdFQUFBQUFBQUFRQUFBQUFBQWdEQUFBQUFBQUFBQUFBPSIsCiAgICAgICJzaXplcyI6ICIxOTJ4MTkyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0sCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWXk0QmFXeHVjejAwYzI5dWExRXhYR0poWkdWdVkyVW5LNABBb0FEZ0FBQUFJQUNVQUFZQUFCQUlBQVFBQUFZQUFBQUFBQUFRQUFBQUVBQVFBRUFBQUVBeEFBQUFDQUFBQ0FBQUFBWdEQUFBQUFBQ0FBQUFBQUFRQUFBQVFBR0FBQUFBQWdFQUFBQUFCWUFFQUFBQUNVRUFBQUFDVVVBQUFBSUFnQUFDR2dFQUFBQUFNQUVBQUFBR2N3QUFBQWd3QUFBQUFDaGdBQUFBRkFnQUFBQUFCZ0VBQUFBQU1BRUFBQUFFQXdFQUFBQUJBQUVBQUFBQUFnQUFBQUFBQUFBQUFRQUFBQUFBQWdFQUFBQUFBQUFRQUFBQUFBQWdEQUFBQUFBQUFBQUFBPSIsCiAgICAgICJzaXplcyI6ICI1MTJ4NTEyIiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIKICAgIH0KICBdCn0=">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .modal {
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        input:focus, select:focus {
+            box-shadow: 0 0 0 2px #10b981; /* emerald-500 */
+            border-color: #10b981;
+            outline: none;
+        }
+        .tab-button.active {
+            background-color: #059669; /* emerald-600 */
+            color: white;
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- Container Principal -->
+    <div class="container mx-auto p-4 max-w-4xl">
+
+        <!-- Cabeçalho -->
+        <header class="bg-slate-800 text-white rounded-xl shadow-2xl p-6 mb-6">
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                <div>
+                    <h1 class="text-3xl font-extrabold">Gestor de Pupunha</h1>
+                    <p class="text-slate-300 mt-1">Sua ferramenta completa para gestão de colheitas.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button id="reportsBtn" class="bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"><i data-lucide="bar-chart-3" class="w-4 h-4"></i>Relatórios</button>
+                    <button id="manageCompaniesBtn" class="bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i>Empresas</button>
+                    <button id="manageOwnersBtn" class="bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors flex items-center gap-2"><i data-lucide="map-pin" class="w-4 h-4"></i>Donos/Roças</button>
+                    <button id="manageCuttersBtn" class="bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-600 transition-colors flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Cortadores</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Ações Principais -->
+        <div class="mb-6">
+            <button id="addLoadBtn" class="w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center gap-2 text-lg">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                Adicionar Nova Carga
+            </button>
+        </div>
+
+        <!-- Lista de Cargas -->
+        <main id="loads-container" class="space-y-5">
+            <!-- As cargas serão inseridas aqui via JavaScript -->
+        </main>
+
+    </div>
+
+    <!-- Modal Genérico (Estrutura) -->
+    <div id="modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 invisible opacity-0 z-50">
+        <div id="modal-content" class="modal-content bg-white rounded-2xl shadow-2xl w-full p-6 transform scale-95">
+            <h2 id="modal-title" class="text-2xl font-bold mb-6 text-center"></h2>
+            <div id="modal-body">
+                <!-- Conteúdo do modal será inserido aqui -->
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Templates de Modals (escondidos) -->
+    <template id="new-load-template">
+        <form id="new-load-form" class="space-y-4">
+            <div>
+                <label for="loadDate" class="block text-sm font-medium text-slate-600 mb-1">Data da Carga</label>
+                <input type="date" id="loadDate" name="loadDate" class="w-full p-2 border border-slate-300 rounded-lg transition" required>
+            </div>
+            <div>
+                <label for="company-select" class="block text-sm font-medium text-slate-600 mb-1">Empresa</label>
+                <select id="company-select" name="company-select" class="w-full p-2 border border-slate-300 rounded-lg transition" required></select>
+            </div>
+            <div>
+                <label for="companyOrder" class="block text-sm font-medium text-slate-600 mb-1">Pedido da Empresa (cabeças)</label>
+                <input type="number" id="companyOrder" name="companyOrder" class="w-full p-2 border border-slate-300 rounded-lg transition" required min="0">
+            </div>
+            <div class="grid grid-cols-2 gap-4 pt-2">
+                <div>
+                    <label for="pricePerHead" class="block text-sm font-medium text-slate-600 mb-1">Valor/Cabeça (R$)</label>
+                    <input type="text" id="pricePerHead" name="pricePerHead" class="w-full p-2 border border-slate-300 rounded-lg transition" placeholder="Ex: 1,20" required>
+                </div>
+                <div>
+                    <label for="cutterCostPerHead" class="block text-sm font-medium text-slate-600 mb-1">Gasto Padrão/cabeça (R$)</label>
+                    <input type="text" id="cutterCostPerHead" name="cutterCostPerHead" class="w-full p-2 border border-slate-300 rounded-lg transition" placeholder="Ex: 0,50" required>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 pt-4">
+                <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Cancelar</button>
+                <button type="submit" class="bg-emerald-600 text-white py-2 px-5 rounded-lg font-bold hover:bg-emerald-700 transition">Criar Carga</button>
+            </div>
+        </form>
+    </template>
+    
+    <template id="quick-add-tractor-template">
+        <form id="quick-add-form" class="mb-4 space-y-4">
+            <div>
+                <label for="owner-select" class="block text-sm font-medium text-slate-600 mb-1">Selecione o Dono/Roça</label>
+                <select id="owner-select" name="owner-select" class="w-full p-2 border border-slate-300 rounded-lg transition" required></select>
+            </div>
+            <div>
+                <label for="cutter-select" class="block text-sm font-medium text-slate-600 mb-1">Selecione o Cortador</label>
+                <select id="cutter-select" name="cutter-select" class="w-full p-2 border border-slate-300 rounded-lg transition" required></select>
+            </div>
+            <div class="flex items-end gap-2">
+                <div class="flex-grow">
+                    <label for="item-quantity" class="block text-sm font-medium text-slate-600 mb-1">Valor a Adicionar</label>
+                    <input type="number" id="item-quantity" name="item-quantity" class="w-full p-2 border border-slate-300 rounded-lg transition" required min="1" autofocus>
+                </div>
+                <button type="submit" class="bg-emerald-600 text-white py-2 px-4 rounded-lg font-bold hover:bg-emerald-700 h-10 transition">Adicionar</button>
+            </div>
+        </form>
+        <div class="border-t border-slate-200 pt-4 mt-4">
+            <h4 class="font-semibold text-lg mb-2">Totais Atuais (Trator)</h4>
+            <div id="current-totals-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+        </div>
+        <div class="flex justify-end mt-6">
+            <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Concluído</button>
+        </div>
+    </template>
+
+    <template id="add-count-template">
+         <div class="space-y-4">
+            <button id="add-cutter-count-btn" class="w-full text-left bg-blue-100 text-blue-800 p-4 rounded-lg hover:bg-blue-200 font-semibold transition flex items-center gap-3"><i data-lucide="users" class="w-5 h-5"></i>Lançar Contagem (Cortadores)</button>
+            <button id="add-tractor-count-btn" class="w-full text-left bg-emerald-100 text-emerald-800 p-4 rounded-lg hover:bg-emerald-200 font-semibold transition flex items-center gap-3"><i data-lucide="tractor" class="w-5 h-5"></i>Lançar Contagem (Trator)</button>
+            <button id="add-company-final-count-btn" class="w-full text-left bg-amber-100 text-amber-800 p-4 rounded-lg hover:bg-amber-200 font-semibold transition flex items-center gap-3"><i data-lucide="building-2" class="w-5 h-5"></i>Informar Contagem Final (Empresa)</button>
+             <div class="pt-4 flex justify-end">
+                <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Voltar</button>
+            </div>
+         </div>
+    </template>
+        
+    <template id="quick-add-template">
+        <form id="quick-add-form" class="mb-4">
+            <div class="mb-4">
+                <label for="item-select" class="block text-sm font-medium text-slate-600 mb-1">Selecione o Cortador</label>
+                <select id="item-select" name="item-select" class="w-full p-2 border border-slate-300 rounded-lg transition" required></select>
+            </div>
+            <div class="flex items-end gap-2">
+                <div class="flex-grow">
+                    <label for="item-quantity" class="block text-sm font-medium text-slate-600 mb-1">Valor a Adicionar</label>
+                    <input type="number" id="item-quantity" name="item-quantity" class="w-full p-2 border border-slate-300 rounded-lg transition" required min="1" autofocus>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white py-2 px-4 rounded-lg font-bold hover:bg-blue-700 h-10 transition">Adicionar</button>
+            </div>
+        </form>
+        <div class="border-t border-slate-200 pt-4 mt-4">
+            <h4 class="font-semibold text-lg mb-2">Totais Atuais (Cortadores)</h4>
+            <div id="current-totals-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+        </div>
+        <div class="flex justify-end mt-6">
+            <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Concluído</button>
+        </div>
+    </template>
+    
+    <template id="company-final-count-form-template">
+        <form id="company-final-count-form">
+             <div class="mb-6">
+                <label for="company-final-quantity" class="block text-sm font-medium text-slate-600 mb-1">Quantidade Final Recebida</label>
+                <input type="number" id="company-final-quantity" name="company-final-quantity" class="w-full p-2 border border-slate-300 rounded-lg transition" required min="0">
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Cancelar</button>
+                <button type="submit" class="bg-amber-500 text-white py-2 px-5 rounded-lg font-bold hover:bg-amber-600 transition">Salvar Contagem Final</button>
+            </div>
+        </form>
+    </template>
+    
+     <template id="notes-template">
+        <form id="notes-form">
+            <div class="mb-6">
+                <label for="load-notes" class="block text-sm font-medium text-slate-600 mb-1">Anotações da Carga</label>
+                <textarea id="load-notes" name="load-notes" rows="4" class="w-full p-2 border border-slate-300 rounded-lg transition" placeholder="Ex: Dia de chuva, trator quebrou..."></textarea>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Cancelar</button>
+                <button type="submit" class="bg-emerald-600 text-white py-2 px-5 rounded-lg font-bold hover:bg-emerald-700 transition">Salvar Anotações</button>
+            </div>
+        </form>
+    </template>
+    
+    <template id="manage-list-template">
+        <form id="add-item-form" class="grid grid-cols-[1fr_auto] gap-2 mb-4">
+            <input type="text" id="item-name" placeholder="Novo nome" class="p-2 border border-slate-300 rounded-lg w-full transition" required>
+            <button type="submit" class="bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-emerald-700 transition flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Adicionar</button>
+        </form>
+        <div id="item-list" class="space-y-2 max-h-60 overflow-y-auto"></div>
+        <div class="flex justify-end mt-6">
+            <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Fechar</button>
+        </div>
+    </template>
+
+    <template id="confirm-delete-template">
+        <div class="text-center">
+            <p class="text-slate-600 mb-4">Tem certeza que deseja apagar permanentemente este item?</p>
+            <p id="item-to-delete-info" class="font-bold text-lg mb-6"></p>
+            <div class="flex justify-center space-x-4">
+                <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-6 rounded-lg font-semibold hover:bg-slate-300 transition">Cancelar</button>
+                <button id="confirm-delete-btn" class="bg-red-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-red-700 transition">Apagar</button>
+            </div>
+        </div>
+    </template>
+    
+    <template id="reports-template">
+        <div class="flex flex-col sm:flex-row gap-4 mb-6">
+            <div>
+                <label for="report-year-select" class="block text-sm font-medium text-slate-600 mb-1">Ano</label>
+                <select id="report-year-select" class="w-full sm:w-auto p-2 border border-slate-300 rounded-lg transition"></select>
+            </div>
+            <div>
+                <label for="report-month-select" class="block text-sm font-medium text-slate-600 mb-1">Mês</label>
+                <select id="report-month-select" class="w-full sm:w-auto p-2 border border-slate-300 rounded-lg transition">
+                    <option value="0">Todos os Meses</option>
+                    <option value="1">Janeiro</option>
+                    <option value="2">Fevereiro</option>
+                    <option value="3">Março</option>
+                    <option value="4">Abril</option>
+                    <option value="5">Maio</option>
+                    <option value="6">Junho</option>
+                    <option value="7">Julho</option>
+                    <option value="8">Agosto</option>
+                    <option value="9">Setembro</option>
+                    <option value="10">Outubro</option>
+                    <option value="11">Novembro</option>
+                    <option value="12">Dezembro</option>
+                </select>
+            </div>
+        </div>
+        <div id="report-summary" class="mb-4"></div>
+        <div id="report-details" class="max-h-80 overflow-y-auto pr-2"></div>
+        <div class="flex justify-end mt-6">
+            <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Fechar</button>
+        </div>
+    </template>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- ELEMENTOS DO DOM ---
+    const loadsContainer = document.getElementById('loads-container');
+    const addLoadBtn = document.getElementById('addLoadBtn');
+    const manageCuttersBtn = document.getElementById('manageCuttersBtn');
+    const manageOwnersBtn = document.getElementById('manageOwnersBtn');
+    const manageCompaniesBtn = document.getElementById('manageCompaniesBtn');
+    const reportsBtn = document.getElementById('reportsBtn');
+    
+    // Modal
+    const modal = document.getElementById('modal');
+    const modalContent = document.getElementById('modal-content');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+
+    // --- ESTADO DA APLICAÇÃO ---
+    let state = {
+        loads: [],
+        cutters: [],
+        owners: [],
+        companies: [],
+        editingLoadId: null,
+    };
+
+    // --- FUNÇÕES DE DADOS (localStorage) ---
+    const AppStorage = {
+        getState: () => {
+            const storedState = localStorage.getItem('pupunhaAppState');
+            const defaultState = { loads: [], cutters: [], owners: [], companies: [] };
+            if (storedState) {
+                const parsedState = JSON.parse(storedState);
+                return { ...defaultState, ...parsedState };
+            }
+            return defaultState;
+        },
+        saveState: () => {
+            localStorage.setItem('pupunhaAppState', JSON.stringify(state));
+        }
+    };
+    
+    // --- FUNÇÕES UTILITÁRIAS ---
+    const formatCurrency = (value) => {
+        if (typeof value !== 'number') return 'R$ 0,00';
+        return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    const parseSanitizedFloat = (value) => {
+        if (typeof value !== 'string') value = String(value);
+        return parseFloat(value.replace(',', '.')) || 0;
+    }
+
+    // --- FUNÇÕES DO MODAL ---
+    const openModal = (title, contentTemplateId, setupFunction, sizeClass = 'max-w-lg') => {
+        const template = document.getElementById(contentTemplateId);
+        if(!template) { console.error("Template not found:", contentTemplateId); return; }
+        modalTitle.textContent = title;
+        modalBody.innerHTML = template.innerHTML;
+        modalContent.classList.remove('max-w-lg', 'max-w-3xl');
+        modalContent.classList.add(sizeClass);
+        
+        modal.classList.remove('invisible', 'opacity-0');
+        modalContent.classList.remove('scale-95');
+
+        if (setupFunction) setupFunction();
+        lucide.createIcons();
+        
+        modal.querySelectorAll('.modal-close-btn').forEach(btn => {
+            btn.addEventListener('click', closeModal);
+        });
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    };
+
+    const closeModal = () => {
+        modal.classList.add('opacity-0');
+        modalContent.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('invisible');
+            modalBody.innerHTML = '';
+            state.editingLoadId = null;
+        }, 300);
+    };
+
+    // --- LÓGICA DE RENDERIZAÇÃO ---
+    const renderLoads = () => {
+        loadsContainer.innerHTML = '';
+        if (state.loads.length === 0) {
+            loadsContainer.innerHTML = `<div class="text-center p-10 bg-white rounded-lg shadow-sm border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto text-slate-300 mb-4"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+                <h3 class="font-semibold text-lg text-slate-700">Nenhuma carga encontrada.</h3>
+                <p class="text-slate-500 mt-1">Clique no botão verde acima para criar sua primeira carga.</p>
+            </div>`;
+            return;
+        }
+
+        const sortedLoads = state.loads.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        sortedLoads.forEach(load => {
+            const cuttersTotal = (load.cutterCounts || []).reduce((sum, c) => sum + c.quantity, 0);
+            const fatherTotal = (load.fatherCounts || []).reduce((sum, f) => sum + f.quantity, 0);
+            let diffCuttersFather = cuttersTotal - fatherTotal;
+
+            const pricePerHead = load.pricePerHead || 0;
+            const defaultCutterCost = load.defaultCutterCostPerHead || 0; // Manter para fallback
+
+            // Projeção base trator (e seu custo detalhado) - calculado primeiro para obter o custo real
+            const totalCutterCost = (load.fatherCounts || []).reduce((sum, item) => sum + (item.quantity * (item.costPerHead || 0)), 0);
+            const grossRevenueExpected = fatherTotal * pricePerHead;
+            const expectedProfit = grossRevenueExpected - totalCutterCost;
+            
+            // Projeção base cortadores (usando o custo médio dos dados do trator)
+            const averageCostPerHead = fatherTotal > 0 ? totalCutterCost / fatherTotal : defaultCutterCost;
+            const totalCutterCostCutter = cuttersTotal * averageCostPerHead;
+            const grossRevenueCutter = cuttersTotal * pricePerHead;
+            const expectedProfitCutter = grossRevenueCutter - totalCutterCostCutter;
+            
+            // Resultado Final
+            const finalCount = load.companyFinalCount || 0;
+            const grossRevenueActual = finalCount * pricePerHead;
+            const actualProfit = grossRevenueActual - totalCutterCost;
+            
+            const financialDifferenceTractor = actualProfit - expectedProfit; // Empresa vs Trator
+            const financialDifferenceCutter = actualProfit - expectedProfitCutter; // Empresa vs Cortadores
+            
+            const allCuttersInLoad = [...new Set([...(load.cutterCounts || []).map(c => c.name), ...(load.fatherCounts || []).map(f => f.cutter)])];
+            const cutterComparison = allCuttersInLoad.map(cutterName => {
+                const reported = (load.cutterCounts || []).filter(c => c.name === cutterName).reduce((sum, item) => sum + item.quantity, 0);
+                const tractor = (load.fatherCounts || []).filter(f => f.cutter === cutterName).reduce((sum, f) => sum + f.quantity, 0);
+                return { name: cutterName, reported, tractor, difference: reported - tractor };
+            });
+            
+            const cutterDifferenceHtml = cutterComparison.map(comp => {
+                const diffColor = comp.difference === 0 ? 'text-emerald-600' : 'text-red-500 font-bold';
+                return `
+                    <div class="grid grid-cols-4 gap-2 text-xs items-center py-1 border-b border-slate-100 last:border-b-0">
+                        <span class="col-span-1 font-medium">${comp.name}</span>
+                        <span class="text-center">${comp.reported}</span>
+                        <span class="text-center">${comp.tractor}</span>
+                        <span class="text-center ${diffColor}">${comp.difference}</span>
+                    </div>
+                `;
+            }).join('');
+
+            const groupedTractorCounts = (load.fatherCounts || []).reduce((acc, count) => {
+                if(!acc[count.owner]) acc[count.owner] = [];
+                acc[count.owner].push(count);
+                return acc;
+            }, {});
+            
+            const ownerTotals = Object.entries(groupedTractorCounts).map(([owner, counts]) => ({
+                owner,
+                total: counts.reduce((sum, c) => sum + c.quantity, 0)
+            })).sort((a, b) => b.total - a.total);
+            
+            const primaryOwner = ownerTotals.length > 0 ? ownerTotals[0].owner : null;
+            
+            const primaryOwnerHtml = primaryOwner ? `
+                <div class="bg-slate-100 p-3 rounded-md">
+                    <p class="font-medium text-slate-800">${primaryOwner}</p>
+                    <div class="pl-2 mt-1 space-y-1">
+                        ${groupedTractorCounts[primaryOwner].map(c => `
+                            <div class="flex justify-between text-xs">
+                                <span class="text-slate-600">- ${c.cutter}</span>
+                                <b>${c.quantity}</b>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>` : '';
+            
+            const complementOwnersHtml = ownerTotals.length > 1 ? `
+                <div class="mt-3">
+                    <p class="font-semibold text-slate-600 text-sm mb-1">Complemento de Outras Roças:</p>
+                    <div class="space-y-2 mt-1">
+                        ${ownerTotals.filter(o => o.owner !== primaryOwner).map(({owner}) => `
+                            <div class="bg-slate-100 p-3 rounded-md">
+                                <p class="font-medium text-slate-800">${owner}</p>
+                                <div class="pl-2 mt-1 space-y-1">
+                                     ${groupedTractorCounts[owner].map(c => `
+                                        <div class="flex justify-between text-xs">
+                                            <span class="text-slate-600">- ${c.cutter}</span>
+                                            <b>${c.quantity}</b>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                 </div>
+            ` : '';
+
+            const noTractorCounts = !primaryOwner;
+
+            const cutterPaymentsInLoad = (load.fatherCounts || []).reduce((acc, tractorCount) => {
+                const cutterName = tractorCount.cutter;
+                const payment = tractorCount.quantity * (tractorCount.costPerHead || 0);
+                if (!acc[cutterName]) acc[cutterName] = { payment: 0, cost: (tractorCount.costPerHead || 0) };
+                acc[cutterName].payment += payment;
+                return acc;
+            }, {});
+
+            const cutterPaymentsHtmlInLoad = Object.keys(cutterPaymentsInLoad).length > 0 ? `
+                <div class="border-t border-slate-200 mt-4 pt-4">
+                    <h4 class="font-semibold text-slate-600 mb-2 text-sm text-left">Pagamentos da Carga (por Cortador)</h4>
+                    <div class="space-y-1 text-left cutter-payment-list">
+                        ${Object.entries(cutterPaymentsInLoad).map(([name, data]) => `
+                            <div class="flex justify-between text-xs items-center bg-slate-50 p-2 rounded-md" data-cutter-name="${name}">
+                                <div class="flex-1">
+                                    <span class="font-medium">${name}</span>
+                                    <div class="text-slate-500 cutter-cost-display">
+                                        Custo/cabeça: <span>${formatCurrency(data.cost)}</span>
+                                        <button class="edit-cutter-cost-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition">
+                                            <i data-lucide="pencil" class="w-4 h-4 pointer-events-none"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <span class="font-bold ml-2">${formatCurrency(data.payment)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            ` : '';
+
+            const loadCard = document.createElement('div');
+            loadCard.className = 'load-card bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden transition-shadow hover:shadow-xl';
+            loadCard.dataset.loadId = load.id;
+            loadCard.innerHTML = `
+                <div class="p-5">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="font-bold text-xl text-slate-800">Carga de ${new Date(load.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}</p>
+                            <p class="text-sm text-slate-500">Para: <span class="font-semibold text-slate-700">${load.companyName}</span></p>
+                            <p class="text-sm text-slate-500">Pedido: <span class="font-semibold text-slate-700">${load.companyOrder || 0} cabeças</span></p>
+                        </div>
+                        <button class="delete-load-btn text-slate-400 hover:text-red-500 p-1" data-id="${load.id}">
+                             <i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i>
+                        </button>
+                    </div>
+
+                    <div class="border-b border-slate-200 mb-4">
+                        <nav class="-mb-px flex space-x-4" aria-label="Tabs">
+                            <button class="tab-button active" data-tab="summary">Resumo</button>
+                            <button class="tab-button" data-tab="details">Detalhes</button>
+                            <button class="tab-button" data-tab="finance">Financeiro</button>
+                        </nav>
+                    </div>
+
+                    <div class="tab-panel" id="summary-${load.id}">
+                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center text-center">
+                                <i data-lucide="users" class="w-8 h-8 text-blue-500 mb-2"></i>
+                                <p class="text-xs font-semibold text-slate-500 uppercase">Total Cortadores</p>
+                                <p class="text-3xl font-bold text-blue-600">${cuttersTotal}</p>
+                            </div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center text-center">
+                                <i data-lucide="tractor" class="w-8 h-8 text-emerald-500 mb-2"></i>
+                                <p class="text-xs font-semibold text-slate-500 uppercase">Total Trator</p>
+                                <p class="text-3xl font-bold text-emerald-600">${fatherTotal}</p>
+                            </div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center text-center">
+                                <i data-lucide="arrow-left-right" class="w-8 h-8 ${diffCuttersFather === 0 ? 'text-slate-400' : 'text-red-500'} mb-2"></i>
+                                <p class="text-xs font-semibold text-slate-500 uppercase">Diferença</p>
+                                <p class="text-3xl font-bold ${diffCuttersFather === 0 ? 'text-slate-700' : 'text-red-600'}">${diffCuttersFather}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panel hidden" id="details-${load.id}">
+                        <div class="space-y-4 pt-2">
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg">
+                                <div class="flex items-center gap-2 font-semibold text-slate-700 mb-3">
+                                    <i data-lucide="clipboard-check" class="w-5 h-5 text-slate-500"></i>
+                                    <h4 class="text-base">Conferência por Cortador</h4>
+                                </div>
+                                <div class="bg-slate-50 p-2 rounded-md">
+                                    <div class="grid grid-cols-4 gap-2 text-xs font-bold text-slate-500 border-b border-slate-200 pb-1 mb-1">
+                                        <span class="col-span-1">Cortador</span>
+                                        <span class="text-center">Contou</span>
+                                        <span class="text-center">Trator</span>
+                                        <span class="text-center">Dif.</span>
+                                    </div>
+                                    ${cutterDifferenceHtml.length > 0 ? cutterDifferenceHtml : '<p class="text-slate-500 text-xs text-center py-2">Nenhuma contagem para comparar.</p>'}
+                                </div>
+                            </div>
+                    
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg">
+                                <div class="flex items-center gap-2 font-semibold text-slate-700 mb-3">
+                                    <i data-lucide="tractor" class="w-5 h-5 text-slate-500"></i>
+                                    <h4 class="text-base">Contagem do Trator por Roça</h4>
+                                </div>
+                                ${noTractorCounts ? '<p class="text-slate-500 text-xs italic p-2">Nenhuma contagem do trator adicionada.</p>' : `
+                                    <div class="space-y-3">
+                                        <div>
+                                            <p class="font-semibold text-slate-600 text-sm mb-1">Roça Principal:</p>
+                                            ${primaryOwnerHtml}
+                                        </div>
+                                        ${complementOwnersHtml}
+                                    </div>
+                                `}
+                            </div>
+                    
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg">
+                                 <div class="flex items-center gap-2 font-semibold text-slate-700 mb-3">
+                                    <i data-lucide="info" class="w-5 h-5 text-slate-500"></i>
+                                    <h4 class="text-base">Informações Adicionais</h4>
+                                </div>
+                                <div class="space-y-3 text-sm p-2 bg-slate-50 rounded-md">
+                                    <p class="text-slate-600 flex justify-between items-center"><b>Contagem Final (Empresa):</b> <span class="font-bold ${load.companyFinalCount !== null ? 'text-amber-600' : 'text-slate-500'}">${load.companyFinalCount !== null ? load.companyFinalCount : 'Aguardando...'}</span></p>
+                                    <div class="border-t border-slate-200 pt-2"><p class="text-slate-600"><b>Anotações:</b></p><p class="pl-2 text-slate-700 italic">${load.notes || 'Nenhuma anotação.'}</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-panel hidden" id="finance-${load.id}">
+                        <div class="space-y-4 pt-2">
+                            <div>
+                                <h4 class="font-semibold text-slate-700 mb-2 text-center text-sm">Projeção (Base Contagem Cortadores)</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="dollar-sign" class="w-6 h-6 text-slate-400 mb-1"></i>
+                                        <p class="text-xs font-semibold text-slate-500">RECEITA BRUTA</p>
+                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(grossRevenueCutter)}</p>
+                                    </div>
+                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="users" class="w-6 h-6 text-slate-400 mb-1"></i>
+                                        <p class="text-xs font-semibold text-slate-500">CUSTO CORTADORES</p>
+                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(totalCutterCostCutter)}</p>
+                                    </div>
+                                    <div class="bg-blue-100 p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="trending-up" class="w-6 h-6 text-blue-500 mb-1"></i>
+                                        <p class="text-xs font-semibold text-blue-600">LUCRO ESPERADO</p>
+                                        <p class="text-lg font-bold text-blue-600">${formatCurrency(expectedProfitCutter)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="border-t pt-4">
+                                <h4 class="font-semibold text-slate-700 mb-2 text-center text-sm">Projeção (Base Contagem Trator)</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="dollar-sign" class="w-6 h-6 text-slate-400 mb-1"></i>
+                                        <p class="text-xs font-semibold text-slate-500">RECEITA BRUTA</p>
+                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(grossRevenueExpected)}</p>
+                                    </div>
+                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="users" class="w-6 h-6 text-slate-400 mb-1"></i>
+                                        <p class="text-xs font-semibold text-slate-500">CUSTO CORTADORES</p>
+                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(totalCutterCost)}</p>
+                                    </div>
+                                    <div class="bg-emerald-100 p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="trending-up" class="w-6 h-6 text-emerald-500 mb-1"></i>
+                                        <p class="text-xs font-semibold text-emerald-600">LUCRO ESPERADO</p>
+                                        <p class="text-lg font-bold text-emerald-600">${formatCurrency(expectedProfit)}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${load.companyFinalCount !== null ? `
+                            <div class="border-t pt-4">
+                                <h4 class="font-semibold text-slate-700 mb-2 text-center text-sm">Resultado Final (Base Contagem Empresa)</h4>
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="dollar-sign" class="w-6 h-6 text-slate-400 mb-1"></i>
+                                        <p class="text-xs font-semibold text-slate-500">RECEITA BRUTA</p>
+                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(grossRevenueActual)}</p>
+                                    </div>
+                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="users" class="w-6 h-6 text-slate-400 mb-1"></i>
+                                        <p class="text-xs font-semibold text-slate-500">CUSTO CORTADORES</p>
+                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(totalCutterCost)}</p>
+                                    </div>
+                                    <div class="bg-amber-100 p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="check-circle-2" class="w-6 h-6 text-amber-500 mb-1"></i>
+                                        <p class="text-xs font-semibold text-amber-600">LUCRO REAL</p>
+                                        <p class="text-lg font-bold text-amber-600">${formatCurrency(actualProfit)}</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-center mt-3">
+                                    <div class="${financialDifferenceCutter === 0 ? 'bg-slate-100' : financialDifferenceCutter < 0 ? 'bg-red-100' : 'bg-green-100'} p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="arrow-left-right" class="w-6 h-6 ${financialDifferenceCutter === 0 ? 'text-slate-500' : financialDifferenceCutter < 0 ? 'text-red-500' : 'text-green-500'} mb-1"></i>
+                                        <p class="text-xs font-semibold ${financialDifferenceCutter === 0 ? 'text-slate-600' : financialDifferenceCutter < 0 ? 'text-red-600' : 'text-green-600'}">DIFERENÇA (Cortadores)</p>
+                                        <p class="text-lg font-bold ${financialDifferenceCutter === 0 ? 'text-slate-600' : financialDifferenceCutter < 0 ? 'text-red-600' : 'text-green-600'}">${formatCurrency(financialDifferenceCutter)}</p>
+                                    </div>
+                                    <div class="${financialDifferenceTractor === 0 ? 'bg-slate-100' : financialDifferenceTractor < 0 ? 'bg-red-100' : 'bg-green-100'} p-3 rounded-lg flex flex-col items-center justify-center">
+                                        <i data-lucide="arrow-left-right" class="w-6 h-6 ${financialDifferenceTractor === 0 ? 'text-slate-500' : financialDifferenceTractor < 0 ? 'text-red-500' : 'text-green-500'} mb-1"></i>
+                                        <p class="text-xs font-semibold ${financialDifferenceTractor === 0 ? 'text-slate-600' : financialDifferenceTractor < 0 ? 'text-red-600' : 'text-green-600'}">DIFERENÇA (Trator)</p>
+                                        <p class="text-lg font-bold ${financialDifferenceTractor === 0 ? 'text-slate-600' : financialDifferenceTractor < 0 ? 'text-red-600' : 'text-green-600'}">${formatCurrency(financialDifferenceTractor)}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        ${cutterPaymentsHtmlInLoad}
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 border-t border-slate-200 px-5 py-3 flex flex-wrap gap-2">
+                    <button class="add-count-main-btn flex-1 basis-full sm:basis-auto bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2" data-id="${load.id}">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Contagem
+                    </button>
+                    <button class="edit-note-btn flex-1 basis-1/2 sm:basis-auto bg-white border border-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center gap-2" data-id="${load.id}">
+                        <i data-lucide="pencil" class="w-4 h-4"></i> Anotações
+                    </button>
+                </div>
+            `;
+            loadsContainer.appendChild(loadCard);
+        });
+
+        lucide.createIcons();
+    };
+    
+    // --- FUNÇÕES DE MANIPULAÇÃO DE DADOS (CRUD) ---
+    const addLoad = (date, companyName, companyOrder, pricePerHead, defaultCutterCost) => {
+        const newLoad = {
+            id: 'load_' + Date.now(),
+            date,
+            companyName,
+            companyOrder: parseInt(companyOrder, 10),
+            pricePerHead: parseSanitizedFloat(pricePerHead),
+            defaultCutterCostPerHead: parseSanitizedFloat(defaultCutterCost),
+            cutterCounts: [],
+            fatherCounts: [],
+            companyFinalCount: null,
+            notes: ''
+        };
+        state.loads.push(newLoad);
+        update();
+    };
+
+    const requestDeleteLoad = (loadId) => {
+        openModal('Confirmar Exclusão', 'confirm-delete-template', () => {
+            const confirmBtn = document.getElementById('confirm-delete-btn');
+            const loadInfo = document.getElementById('item-to-delete-info');
+            const load = state.loads.find(l => l.id === loadId);
+            if (load) loadInfo.textContent = `Carga de ${new Date(load.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})}`;
+            confirmBtn.onclick = () => {
+                state.loads = state.loads.filter(l => l.id !== loadId);
+                update();
+                closeModal();
+            };
+        });
+    };
+    
+    const addCount = (details) => {
+        const { loadId, name, quantity, type, owner } = details;
+        const load = state.loads.find(l => l.id === loadId);
+        const quantityToAdd = parseInt(quantity, 10);
+        if (!load || isNaN(quantityToAdd) || quantityToAdd <= 0) return;
+
+        const newId = `count_${Date.now()}_${Math.random()}`;
+        if (type === 'cutter') {
+            if (!load.cutterCounts) load.cutterCounts = [];
+            load.cutterCounts.push({ id: newId, name: name, quantity: quantityToAdd });
+        } else if (type === 'tractor') {
+            if (!load.fatherCounts) load.fatherCounts = [];
+            load.fatherCounts.push({
+                id: newId,
+                owner: owner,
+                cutter: name,
+                quantity: quantityToAdd,
+                costPerHead: load.defaultCutterCostPerHead || 0
+            });
+        }
+        update();
+    };
+    
+    const deleteCount = (loadId, countId, type) => {
+        const load = state.loads.find(l => l.id === loadId);
+        if (!load) return;
+        if (type === 'cutter') {
+            load.cutterCounts = (load.cutterCounts || []).filter(c => c.id !== countId);
+        } else if (type === 'tractor') {
+            load.fatherCounts = (load.fatherCounts || []).filter(c => c.id !== countId);
+        }
+        update();
+    };
+
+    const updateCount = (loadId, countId, newQuantity, type) => {
+        const load = state.loads.find(l => l.id === loadId);
+        const quantity = parseInt(newQuantity, 10);
+        if (!load || isNaN(quantity) || quantity < 0) return;
+
+        const list = type === 'cutter' ? load.cutterCounts : load.fatherCounts;
+        const item = (list || []).find(c => c.id === countId);
+        if (item) item.quantity = quantity;
+        update();
+    };
+
+    const updateCutterCostForLoad = (loadId, cutterName, newCost) => {
+        const load = state.loads.find(l => l.id === loadId);
+        const cost = parseSanitizedFloat(newCost);
+        if (!load) return;
+        
+        let changed = false;
+        (load.fatherCounts || []).forEach(item => {
+            if (item.cutter === cutterName) {
+                item.costPerHead = cost;
+                changed = true;
+            }
+        });
+
+        if(changed){
+            // This forces a state update recognized by the main update function
+            state.loads = [...state.loads];
+            update({ loadIdToKeepTab: loadId, activeTab: 'finance' });
+        }
+    };
+
+    const addCompanyFinalCount = (loadId, quantity) => {
+        const load = state.loads.find(l => l.id === loadId);
+        if(load) load.companyFinalCount = parseInt(quantity, 10);
+        update();
+    };
+    
+    const saveNote = (loadId, noteText) => {
+        const load = state.loads.find(l => l.id === loadId);
+        if(load) load.notes = noteText;
+        update();
+    };
+
+    const renderManageList = (listType) => {
+        const title = listType === 'cutter' ? 'Gerenciar Cortadores' : (listType === 'owner' ? 'Gerenciar Donos/Roças' : 'Gerenciar Empresas');
+        openModal(title, 'manage-list-template', () => {
+            const itemListDiv = document.getElementById('item-list');
+            const addItemForm = document.getElementById('add-item-form');
+            const itemNameInput = document.getElementById('item-name');
+            itemNameInput.placeholder = listType === 'cutter' ? 'Nome do cortador' : (listType === 'owner' ? 'Nome do dono/roça' : 'Nome da empresa');
+
+            const renderList = () => {
+                const currentList = listType === 'cutter' ? state.cutters : (listType === 'owner' ? state.owners : state.companies);
+                itemListDiv.innerHTML = (currentList || []).map(item => `
+                    <div class="flex justify-between items-center bg-slate-100 p-2 rounded-md">
+                        <span class="font-medium">${item}</span>
+                        <button class="delete-item-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition" data-name="${item}" data-type="${listType}">
+                             <i data-lucide="x" class="w-5 h-5 pointer-events-none"></i>
+                        </button>
+                    </div>`).join('');
+                lucide.createIcons();
+            };
+
+            addItemForm.onsubmit = (e) => {
+                e.preventDefault();
+                const name = itemNameInput.value.trim();
+                const list = listType === 'cutter' ? state.cutters : (listType === 'owner' ? state.owners : state.companies);
+                if (name && !(list||[]).includes(name)) {
+                    list.push(name);
+                    itemNameInput.value = '';
+                    renderList();
+                    AppStorage.saveState();
+                }
+            };
+
+            itemListDiv.addEventListener('click', (e) => {
+                const deleteButton = e.target.closest('.delete-item-btn');
+                if (deleteButton) {
+                    const name = deleteButton.dataset.name;
+                    const type = deleteButton.dataset.type;
+                    if (type === 'cutter') state.cutters = (state.cutters || []).filter(c => c !== name);
+                    else if (type === 'owner') state.owners = (state.owners || []).filter(o => o !== name);
+                    else if (type === 'company') state.companies = (state.companies || []).filter(c => c !== name);
+                    renderList();
+                    AppStorage.saveState();
+                }
+            });
+            renderList();
+        });
+    };
+
+    // --- MANIPULADORES DE EVENTOS ---
+    addLoadBtn.addEventListener('click', () => {
+        openModal('Criar Nova Carga', 'new-load-template', () => {
+            document.getElementById('loadDate').valueAsDate = new Date();
+            const companySelect = document.getElementById('company-select');
+            if (!state.companies || state.companies.length === 0) companySelect.innerHTML = '<option value="" disabled selected>Cadastre uma empresa primeiro</option>';
+            else state.companies.forEach(c => companySelect.add(new Option(c,c)));
+            
+            document.getElementById('new-load-form').onsubmit = (e) => {
+                e.preventDefault();
+                const form = e.target;
+                if (!form.elements['company-select'].value) { alert('Por favor, cadastre e selecione uma empresa.'); return; }
+                addLoad(
+                    form.elements.loadDate.value, 
+                    form.elements['company-select'].value, 
+                    form.elements.companyOrder.value,
+                    form.elements.pricePerHead.value,
+                    form.elements.cutterCostPerHead.value
+                );
+                closeModal();
+            };
+        });
+    });
+    
+    reportsBtn.addEventListener('click', () => handleOpenReports());
+    manageCuttersBtn.addEventListener('click', () => renderManageList('cutter'));
+    manageOwnersBtn.addEventListener('click', () => renderManageList('owner'));
+    manageCompaniesBtn.addEventListener('click', () => renderManageList('company'));
+    
+    loadsContainer.addEventListener('click', e => {
+        const button = e.target.closest('button');
+        if (!button) return;
+
+        const loadCard = button.closest('.load-card');
+        const id = loadCard ? loadCard.dataset.loadId : button.dataset.id;
+        state.editingLoadId = id;
+
+        if (button.classList.contains('delete-load-btn')) requestDeleteLoad(id);
+        else if (button.classList.contains('add-count-main-btn')) openModal('Adicionar Contagem', 'add-count-template', setupAddCountListeners);
+        else if (button.classList.contains('edit-note-btn')) handleEditNote(id);
+        else if (button.classList.contains('tab-button')) {
+            const tab = button.dataset.tab;
+            loadCard.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+            loadCard.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+            loadCard.querySelector(`#${tab}-${id}`).classList.remove('hidden');
+        } else if (button.classList.contains('edit-cutter-cost-btn')) {
+            const displayWrapper = button.closest('.cutter-cost-display');
+            const cutterName = button.closest('[data-cutter-name]').dataset.cutterName;
+            const load = state.loads.find(l => l.id === id);
+            const currentCost = (load.fatherCounts.find(fc => fc.cutter === cutterName) || {}).costPerHead || 0;
+            
+            const originalHTML = displayWrapper.innerHTML;
+            displayWrapper.innerHTML = `
+                <form class="edit-cost-form flex items-center gap-1">
+                    <input type="text" class="w-20 p-1 border border-slate-300 rounded-md text-xs" value="${String(currentCost).replace('.',',')}" />
+                    <button type="submit" class="p-1 text-emerald-600 hover:bg-emerald-100 rounded-full"><i data-lucide="check" class="w-5 h-5"></i></button>
+                    <button type="button" class="cancel-edit-cost p-1 text-slate-500 hover:bg-slate-100 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </form>
+            `;
+            lucide.createIcons();
+            
+            displayWrapper.querySelector('.cancel-edit-cost').onclick = () => {
+                displayWrapper.innerHTML = originalHTML;
+                lucide.createIcons();
+            };
+
+            displayWrapper.querySelector('.edit-cost-form').onsubmit = (ev) => {
+                ev.preventDefault();
+                const newCost = ev.target.querySelector('input').value;
+                updateCutterCostForLoad(id, cutterName, newCost);
+            };
+        }
+    });
+    
+    const setupAddCountListeners = () => {
+         document.getElementById('add-cutter-count-btn').addEventListener('click', () => handleQuickAdd('cutter'));
+         document.getElementById('add-tractor-count-btn').addEventListener('click', () => handleQuickAdd('tractor'));
+         document.getElementById('add-company-final-count-btn').addEventListener('click', handleCompanyFinalCount);
+    }
+    
+    const handleQuickAdd = (type) => {
+        const load = state.loads.find(l => l.id === state.editingLoadId);
+        if (!load) return;
+
+        const isTractor = type === 'tractor';
+        const templateId = isTractor ? 'quick-add-tractor-template' : 'quick-add-template';
+        const modalTitle = isTractor ? 'Contador Rápido (Trator)' : 'Contador Rápido (Cortadores)';
+
+        openModal(modalTitle, templateId, () => {
+            const form = document.getElementById('quick-add-form');
+            const quantityInput = document.getElementById('item-quantity');
+            const totalsDiv = document.getElementById('current-totals-list');
+            
+            // Setup selects
+            if (isTractor) {
+                const ownerSelect = document.getElementById('owner-select');
+                const cutterSelect = document.getElementById('cutter-select');
+                 if(!state.owners || state.owners.length === 0) ownerSelect.innerHTML = `<option value="" disabled selected>Cadastre um dono/roça</option>`;
+                else state.owners.forEach(o => ownerSelect.add(new Option(o, o)));
+                if(!state.cutters || state.cutters.length === 0) cutterSelect.innerHTML = `<option value="" disabled selected>Cadastre um cortador</option>`;
+                else state.cutters.forEach(c => cutterSelect.add(new Option(c, c)));
+            } else {
+                const cutterSelect = document.getElementById('item-select');
+                if (!state.cutters || state.cutters.length === 0) cutterSelect.innerHTML = `<option disabled selected>Nenhum cortador cadastrado</option>`;
+                else state.cutters.forEach(item => cutterSelect.add(new Option(item, item)));
+            }
+            
+            const renderTotals = () => {
+                const counts = isTractor ? (load.fatherCounts || []) : (load.cutterCounts || []);
+                if (counts.length === 0) {
+                    totalsDiv.innerHTML = '<p class="text-slate-500 text-center py-2">Nenhum valor adicionado.</p>';
+                    return;
+                }
+
+                if (isTractor) {
+                    const grouped = counts.reduce((acc, c) => {
+                        if (!acc[c.owner]) acc[c.owner] = [];
+                        acc[c.owner].push(c);
+                        return acc;
+                    }, {});
+                    totalsDiv.innerHTML = Object.entries(grouped).map(([owner, ownerCounts]) => `
+                        <div class="bg-slate-100 p-2 rounded-md">
+                           <p class="font-bold text-sm mb-1">${owner}</p>
+                           ${ownerCounts.map(item => `
+                                <div class="list-item-wrapper border-t border-slate-200" data-count-id="${item.id}">
+                                    <div class="flex justify-between items-center py-1 px-2">
+                                        <div><span class="font-medium text-xs">${item.cutter}</span>: <span class="font-bold text-base">${item.quantity}</span></div>
+                                        <div class="flex items-center gap-2">
+                                            <button class="edit-count-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition"><i data-lucide="pencil" class="w-5 h-5 pointer-events-none"></i></button>
+                                            <button class="delete-count-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition"><i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                           `).join('')}
+                        </div>
+                    `).join('');
+                } else {
+                     totalsDiv.innerHTML = counts.sort((a,b) => a.name.localeCompare(b.name)).map(item => `
+                        <div class="list-item-wrapper" data-count-id="${item.id}">
+                            <div class="flex justify-between items-center bg-slate-50 p-2 rounded">
+                                <div><span class="font-medium">${item.name}</span>: <span class="font-bold text-lg">${item.quantity}</span></div>
+                                <div class="flex items-center gap-2">
+                                    <button class="edit-count-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition"><i data-lucide="pencil" class="w-5 h-5 pointer-events-none"></i></button>
+                                    <button class="delete-count-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition"><i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                     `).join('');
+                }
+                lucide.createIcons();
+            };
+
+            totalsDiv.addEventListener('click', e => {
+                const editBtn = e.target.closest('.edit-count-btn');
+                const deleteBtn = e.target.closest('.delete-count-btn');
+                if (!editBtn && !deleteBtn) return;
+                
+                const wrapper = e.target.closest('.list-item-wrapper');
+                const countId = wrapper.dataset.countId;
+
+                if (deleteBtn) {
+                    deleteCount(load.id, countId, type);
+                    renderTotals();
+                }
+
+                if (editBtn) {
+                    const originalContentHTML = wrapper.innerHTML;
+                    const list = isTractor ? load.fatherCounts : load.cutterCounts;
+                    const item = (list || []).find(c => c.id === countId);
+                    if (!item) return;
+
+                    wrapper.innerHTML = `
+                        <form class="edit-count-form flex items-center gap-2 p-2 bg-slate-50 rounded">
+                            <input type="number" value="${item.quantity}" class="w-full p-2 border border-slate-300 rounded-lg" />
+                            <button type="submit" class="p-2 text-emerald-600 hover:bg-emerald-100 rounded-full"><i data-lucide="check" class="w-5 h-5"></i></button>
+                            <button type="button" class="cancel-edit-btn p-2 text-slate-500 hover:bg-slate-200 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </form>
+                    `;
+                    lucide.createIcons();
+                    
+                    wrapper.querySelector('.cancel-edit-btn').onclick = (ev) => {
+                        ev.stopPropagation();
+                        wrapper.innerHTML = originalContentHTML;
+                        lucide.createIcons();
+                    };
+
+                    wrapper.querySelector('input').addEventListener('click', ev => ev.stopPropagation());
+
+                    wrapper.querySelector('.edit-count-form').onsubmit = (ev) => {
+                        ev.preventDefault();
+                        const newQuantity = ev.target.querySelector('input').value;
+                        updateCount(load.id, countId, newQuantity, type);
+                        renderTotals();
+                    };
+                }
+            });
+
+            form.onsubmit = e => {
+                e.preventDefault();
+                let details = { loadId: load.id, quantity: quantityInput.value, type: type };
+                if (isTractor) {
+                    const ownerSelect = document.getElementById('owner-select');
+                    const cutterSelect = document.getElementById('cutter-select');
+                    if(!ownerSelect.value || !cutterSelect.value) { alert('Selecione um dono/roça e um cortador.'); return; }
+                    details.name = cutterSelect.value;
+                    details.owner = ownerSelect.value;
+                } else {
+                    const cutterSelect = document.getElementById('item-select');
+                    if (!cutterSelect.value) return;
+                    details.name = cutterSelect.value;
+                }
+                addCount(details);
+                renderTotals();
+                quantityInput.value = '';
+                quantityInput.focus();
+            };
+            
+            renderTotals();
+        });
+    }
+
+    const handleCompanyFinalCount = () => {
+        openModal("Contagem Final da Empresa", 'company-final-count-form-template', () => {
+            const form = document.getElementById('company-final-count-form');
+            const load = state.loads.find(l => l.id === state.editingLoadId);
+            if(load && load.companyFinalCount) form.elements['company-final-quantity'].value = load.companyFinalCount;
+            
+            form.onsubmit = e => {
+                e.preventDefault();
+                addCompanyFinalCount(state.editingLoadId, form.elements['company-final-quantity'].value);
+                closeModal();
+            };
+        });
+    }
+
+    const handleEditNote = (loadId) => {
+        openModal("Anotações da Carga", "notes-template", () => {
+            const form = document.getElementById('notes-form');
+            const load = state.loads.find(l => l.id === loadId);
+            if(load) form.elements['load-notes'].value = load.notes || '';
+
+            form.onsubmit = e => {
+                e.preventDefault();
+                saveNote(loadId, form.elements['load-notes'].value.trim());
+                closeModal();
+            }
+        });
+    };
+
+    const handleOpenReports = () => {
+        openModal('Relatórios de Desempenho', 'reports-template', () => {
+            const yearSelect = document.getElementById('report-year-select');
+            const monthSelect = document.getElementById('report-month-select');
+            const summaryDiv = document.getElementById('report-summary');
+            const detailsDiv = document.getElementById('report-details');
+
+            const allLoads = state.loads || [];
+
+            const years = [...new Set(allLoads.map(l => new Date(l.date).getUTCFullYear()))].sort((a, b) => b - a);
+            if (years.length === 0) {
+                yearSelect.innerHTML = `<option value="">Sem dados</option>`;
+                detailsDiv.innerHTML = '<p class="text-slate-500 text-center mt-8">Nenhum dado para gerar relatórios ainda.</p>';
+                return;
+            }
+            years.forEach(year => yearSelect.add(new Option(year, year)));
+
+            const renderReportData = () => {
+                const selectedYear = parseInt(yearSelect.value, 10);
+                const selectedMonth = parseInt(monthSelect.value, 10);
+
+                if (!selectedYear) {
+                    summaryDiv.innerHTML = '';
+                    detailsDiv.innerHTML = '<p class="text-slate-500 text-center mt-8">Selecione um ano para visualizar o relatório.</p>';
+                    return;
+                }
+
+                const filteredLoads = allLoads.filter(load => {
+                    const loadDate = new Date(load.date);
+                    const loadYear = loadDate.getUTCFullYear();
+                    const loadMonth = loadDate.getUTCMonth() + 1;
+                    
+                    if (selectedYear !== loadYear) return false;
+                    if (selectedMonth !== 0 && selectedMonth !== loadMonth) return false;
+                    return true;
+                });
+                
+                if (filteredLoads.length === 0) {
+                     summaryDiv.innerHTML = '';
+                     detailsDiv.innerHTML = '<p class="text-slate-500 text-center mt-8">Nenhuma carga encontrada para este período.</p>';
+                     return;
+                }
+
+                const summary = filteredLoads.reduce((acc, load) => {
+                    const finalCount = load.companyFinalCount || 0;
+                    const grossRevenue = finalCount * (load.pricePerHead || 0);
+                    const cutterCost = (load.fatherCounts || []).reduce((sum, item) => sum + (item.quantity * (item.costPerHead || 0)), 0);
+
+                    acc.totalLoads += 1;
+                    acc.totalHeads += finalCount;
+                    acc.totalRevenue += grossRevenue;
+                    acc.totalCost += cutterCost;
+                    return acc;
+                }, { totalLoads: 0, totalHeads: 0, totalRevenue: 0, totalCost: 0 });
+
+                summary.totalProfit = summary.totalRevenue - summary.totalCost;
+
+                summaryDiv.innerHTML = `
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                        <div class="bg-slate-100 p-3 rounded-lg"><p class="text-xs font-semibold text-slate-500">TOTAL CARGAS</p><p class="text-xl font-bold">${summary.totalLoads}</p></div>
+                        <div class="bg-slate-100 p-3 rounded-lg"><p class="text-xs font-semibold text-slate-500">TOTAL PUPUNHAS</p><p class="text-xl font-bold">${summary.totalHeads}</p></div>
+                        <div class="bg-emerald-50 p-3 rounded-lg"><p class="text-xs font-semibold text-emerald-600">RECEITA BRUTA</p><p class="text-xl font-bold text-emerald-700">${formatCurrency(summary.totalRevenue)}</p></div>
+                        <div class="bg-red-50 p-3 rounded-lg"><p class="text-xs font-semibold text-red-600">CUSTO TOTAL</p><p class="text-xl font-bold text-red-700">${formatCurrency(summary.totalCost)}</p></div>
+                        <div class="bg-sky-50 p-3 rounded-lg col-span-2 md:col-span-1"><p class="text-xs font-semibold text-sky-600">LUCRO LÍQUIDO</p><p class="text-xl font-bold text-sky-700">${formatCurrency(summary.totalProfit)}</p></div>
+                    </div>
+                `;
+                
+                const cutterPayments = filteredLoads.reduce((acc, load) => {
+                    (load.fatherCounts || []).forEach(tractorCount => {
+                        const cutterName = tractorCount.cutter;
+                        if (!acc[cutterName]) {
+                            acc[cutterName] = { totalHeads: 0, totalPayment: 0 };
+                        }
+                        acc[cutterName].totalHeads += tractorCount.quantity;
+                        acc[cutterName].totalPayment += tractorCount.quantity * (tractorCount.costPerHead || 0);
+                    });
+                    return acc;
+                }, {});
+
+                const cutterPaymentsHtml = Object.keys(cutterPayments).length > 0 ? `
+                    <h4 class="font-semibold text-lg mb-2 mt-6">Pagamentos por Cortador</h4>
+                    <div class="space-y-2">
+                        ${Object.entries(cutterPayments).sort((a,b) => b[1].totalPayment - a[1].totalPayment).map(([name, data]) => `
+                             <div class="bg-slate-50 p-3 rounded-md flex justify-between items-center">
+                                <div>
+                                    <p class="font-medium">${name}</p>
+                                    <p class="text-xs text-slate-500">${data.totalHeads} cabeças (contagem do trator)</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-bold text-slate-800">${formatCurrency(data.totalPayment)}</p>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '';
+
+                detailsDiv.innerHTML = cutterPaymentsHtml + `
+                    <h4 class="font-semibold text-lg mb-2 ${cutterPaymentsHtml ? 'mt-6' : ''}">Detalhes das Cargas</h4>
+                    <div class="space-y-2">
+                        ${filteredLoads.sort((a,b) => new Date(b.date) - new Date(a.date)).map(load => {
+                            const finalCount = load.companyFinalCount || 0;
+                            const grossRevenue = finalCount * (load.pricePerHead || 0);
+                            const cutterCost = (load.fatherCounts || []).reduce((sum, item) => sum + (item.quantity * (item.costPerHead || 0)), 0);
+                            const netProfit = grossRevenue - cutterCost;
+
+                            return `
+                                <div class="bg-slate-50 p-3 rounded-md flex justify-between items-center">
+                                    <div>
+                                        <p class="font-medium">${new Date(load.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})} - ${load.companyName}</p>
+                                        <p class="text-xs text-slate-500">${finalCount} cabeças | Lucro: <span class="font-semibold">${formatCurrency(netProfit)}</span></p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-emerald-600">${formatCurrency(grossRevenue)}</p>
+                                        <p class="text-xs text-red-500">-${formatCurrency(cutterCost)}</p>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            };
+
+            yearSelect.onchange = renderReportData;
+            monthSelect.onchange = renderReportData;
+            renderReportData();
+        }, 'max-w-3xl');
+    }
+
+    // --- PWA Service Worker ---
+    const registerServiceWorker = () => {
+        if ('serviceWorker' in navigator) {
+            const swScript = `
+                const CACHE_NAME = 'pupunha-gestor-cache-v14';
+                const urlsToCache = ['./'];
+                self.addEventListener('install', (event) => {
+                    self.skipWaiting();
+                    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)));
+                });
+                self.addEventListener('fetch', (event) => {
+                     event.respondWith(caches.match(event.request).then((response) => response || fetch(event.request)));
+                });
+                self.addEventListener('activate', event => {
+                    const cacheWhitelist = [CACHE_NAME];
+                    event.waitUntil(
+                        caches.keys().then(cacheNames => Promise.all(
+                            cacheNames.map(cacheName => {
+                                if (cacheWhitelist.indexOf(cacheName) === -1) {
+                                    return caches.delete(cacheName);
+                                }
+                            })
+                        ))
+                    );
+                });
+            `;
+            
+            const blob = new Blob([swScript], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl, { scope: './' })
+                .then(registration => console.log('SW registration successful: ', registration.scope))
+                .catch(error => console.log('SW registration failed: ', error));
+        }
+    };
+
+    // --- INICIALIZAÇÃO ---
+    const update = (options = {}) => {
+        const { loadIdToKeepTab, activeTab: requestedTab } = options;
+        let activeTabId = requestedTab || 'summary';
+
+        if (loadIdToKeepTab && !requestedTab) {
+            const loadCard = document.querySelector(`.load-card[data-load-id="${loadIdToKeepTab}"]`);
+            if (loadCard) {
+                const activeButton = loadCard.querySelector('.tab-button.active');
+                if (activeButton) {
+                    activeTabId = activeButton.dataset.tab;
+                }
+            }
+        }
+        
+        AppStorage.saveState();
+        renderLoads();
+
+        if (loadIdToKeepTab) {
+            const loadCard = document.querySelector(`.load-card[data-load-id="${loadIdToKeepTab}"]`);
+            if (loadCard) {
+                loadCard.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+                loadCard.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+                
+                const tabButtonToActivate = loadCard.querySelector(`.tab-button[data-tab="${activeTabId}"]`);
+                const tabPanelToActivate = loadCard.querySelector(`#${activeTabId}-${loadIdToKeepTab}`);
+
+                if(tabButtonToActivate) tabButtonToActivate.classList.add('active');
+                if(tabPanelToActivate) tabPanelToActivate.classList.remove('hidden');
+            }
+        }
+    };
+
+    const init = () => {
+        const style = document.createElement('style');
+        style.textContent = `
+            .tab-button {
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-weight: 500;
+                color: #475569; /* slate-600 */
+                background-color: transparent;
+                transition: all 0.2s ease-in-out;
+            }
+            .tab-button:hover {
+                 background-color: #f1f5f9; /* slate-100 */
+            }
+            .tab-button.active {
+                background-color: #059669; /* emerald-600 */
+                color: white;
+                box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            }
+        `;
+        document.head.appendChild(style);
+
+        state = AppStorage.getState();
+        update();
+        lucide.createIcons();
+        registerServiceWorker();
+    };
+
+    init();
+});
+</script>
+
+</body>
+</html>
+
+
+
+
+
