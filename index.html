@@ -102,7 +102,7 @@
             </div>
             <div class="grid grid-cols-2 gap-4 pt-2">
                 <div>
-                    <label for="pricePerHead" class="block text-sm font-medium text-slate-600 mb-1">Valor/Cabeça (R$)</label>
+                    <label for="pricePerHead" class="block text-sm font-medium text-slate-600 mb-1">Valor/Cabeça Recebido (R$)</label>
                     <input type="text" id="pricePerHead" name="pricePerHead" class="w-full p-2 border border-slate-300 rounded-lg transition" placeholder="Ex: 1,20" required>
                 </div>
                 <div>
@@ -110,11 +110,41 @@
                     <input type="text" id="cutterCostPerHead" name="cutterCostPerHead" class="w-full p-2 border border-slate-300 rounded-lg transition" placeholder="Ex: 0,50" required>
                 </div>
             </div>
+            <div>
+                <label for="ownerPricePerHead" class="block text-sm font-medium text-slate-600 mb-1">Valor/cabeça p/ Dono (R$) <span class="text-xs text-slate-400">(Opcional)</span></label>
+                <input type="text" id="ownerPricePerHead" name="ownerPricePerHead" class="w-full p-2 border border-slate-300 rounded-lg transition" placeholder="Deixe em branco se for roça própria">
+                <div id="owner-price-suggestion" class="text-xs text-slate-500 mt-1 hidden"></div>
+            </div>
             <div class="flex justify-end space-x-3 pt-4">
                 <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Cancelar</button>
                 <button type="submit" class="bg-emerald-600 text-white py-2 px-5 rounded-lg font-bold hover:bg-emerald-700 transition">Criar Carga</button>
             </div>
         </form>
+    </template>
+
+    <template id="expenses-template">
+        <form id="add-expense-form" class="space-y-3 mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+                <div>
+                    <label for="expense-description" class="block text-sm font-medium text-slate-600 mb-1">Descrição</label>
+                    <input type="text" id="expense-description" placeholder="Ex: Combustível" class="w-full p-2 border border-slate-300 rounded-lg transition" required>
+                </div>
+                <div>
+                    <label for="expense-amount" class="block text-sm font-medium text-slate-600 mb-1">Valor (R$)</label>
+                    <input type="text" id="expense-amount" placeholder="Ex: 50,00" class="w-full p-2 border border-slate-300 rounded-lg transition" required>
+                </div>
+            </div>
+            <button type="submit" class="w-full bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-emerald-700 transition flex items-center justify-center gap-2">
+                <i data-lucide="plus" class="w-4 h-4"></i>Adicionar Despesa
+            </button>
+        </form>
+        <div class="border-t border-slate-200 pt-4 mt-4">
+            <h4 class="font-semibold text-lg mb-2">Despesas Lançadas</h4>
+            <div id="expense-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+        </div>
+        <div class="flex justify-end mt-6">
+            <button type="button" class="modal-close-btn bg-slate-200 text-slate-700 py-2 px-5 rounded-lg font-semibold hover:bg-slate-300 transition">Fechar</button>
+        </div>
     </template>
     
     <template id="quick-add-tractor-template">
@@ -307,6 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const parseSanitizedFloat = (value) => {
+        if (!value) return 0;
         if (typeof value !== 'string') value = String(value);
         return parseFloat(value.replace(',', '.')) || 0;
     }
@@ -362,28 +393,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const cuttersTotal = (load.cutterCounts || []).reduce((sum, c) => sum + c.quantity, 0);
             const fatherTotal = (load.fatherCounts || []).reduce((sum, f) => sum + f.quantity, 0);
             let diffCuttersFather = cuttersTotal - fatherTotal;
-
             const pricePerHead = load.pricePerHead || 0;
-            const defaultCutterCost = load.defaultCutterCostPerHead || 0; // Manter para fallback
+            const ownerPricePerHead = load.ownerPricePerHead || 0;
+            const defaultCutterCost = load.defaultCutterCostPerHead || 0;
+            const totalAdditionalExpenses = (load.additionalExpenses || []).reduce((sum, e) => sum + e.amount, 0);
+            const finalCount = load.companyFinalCount || 0;
 
-            // Projeção base trator (e seu custo detalhado) - calculado primeiro para obter o custo real
+            // Custos
             const totalCutterCost = (load.fatherCounts || []).reduce((sum, item) => sum + (item.quantity * (item.costPerHead || 0)), 0);
-            const grossRevenueExpected = fatherTotal * pricePerHead;
-            const expectedProfit = grossRevenueExpected - totalCutterCost;
-            
-            // Projeção base cortadores (usando o custo médio dos dados do trator)
             const averageCostPerHead = fatherTotal > 0 ? totalCutterCost / fatherTotal : defaultCutterCost;
             const totalCutterCostCutter = cuttersTotal * averageCostPerHead;
-            const grossRevenueCutter = cuttersTotal * pricePerHead;
-            const expectedProfitCutter = grossRevenueCutter - totalCutterCostCutter;
+
+            // Cálculos de Lucro
+            let paiProfitExpectedCutter, paiProfitExpectedTrator, paiProfitActual;
             
-            // Resultado Final
-            const finalCount = load.companyFinalCount || 0;
-            const grossRevenueActual = finalCount * pricePerHead;
-            const actualProfit = grossRevenueActual - totalCutterCost;
-            
-            const financialDifferenceTractor = actualProfit - expectedProfit; // Empresa vs Trator
-            const financialDifferenceCutter = actualProfit - expectedProfitCutter; // Empresa vs Cortadores
+            if (ownerPricePerHead > 0) { // Roça Terceirizada
+                paiProfitExpectedCutter = cuttersTotal * (pricePerHead - ownerPricePerHead);
+                paiProfitExpectedTrator = fatherTotal * (pricePerHead - ownerPricePerHead);
+                paiProfitActual = finalCount * (pricePerHead - ownerPricePerHead);
+            } else { // Roça Própria
+                paiProfitExpectedCutter = (cuttersTotal * pricePerHead) - totalCutterCostCutter - totalAdditionalExpenses;
+                paiProfitExpectedTrator = (fatherTotal * pricePerHead) - totalCutterCost - totalAdditionalExpenses;
+                paiProfitActual = (finalCount * pricePerHead) - totalCutterCost - totalAdditionalExpenses;
+            }
             
             const allCuttersInLoad = [...new Set([...(load.cutterCounts || []).map(c => c.name), ...(load.fatherCounts || []).map(f => f.cutter)])];
             const cutterComparison = allCuttersInLoad.map(cutterName => {
@@ -394,94 +426,58 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const cutterDifferenceHtml = cutterComparison.map(comp => {
                 const diffColor = comp.difference === 0 ? 'text-emerald-600' : 'text-red-500 font-bold';
-                return `
-                    <div class="grid grid-cols-4 gap-2 text-xs items-center py-1 border-b border-slate-100 last:border-b-0">
-                        <span class="col-span-1 font-medium">${comp.name}</span>
-                        <span class="text-center">${comp.reported}</span>
-                        <span class="text-center">${comp.tractor}</span>
-                        <span class="text-center ${diffColor}">${comp.difference}</span>
-                    </div>
-                `;
+                return `<div class="grid grid-cols-4 gap-2 text-xs items-center py-1 border-b border-slate-100 last:border-b-0"><span class="col-span-1 font-medium">${comp.name}</span><span class="text-center">${comp.reported}</span><span class="text-center">${comp.tractor}</span><span class="text-center ${diffColor}">${comp.difference}</span></div>`;
             }).join('');
 
             const groupedTractorCounts = (load.fatherCounts || []).reduce((acc, count) => {
-                if(!acc[count.owner]) acc[count.owner] = [];
-                acc[count.owner].push(count);
-                return acc;
+                if(!acc[count.owner]) acc[count.owner] = []; acc[count.owner].push(count); return acc;
             }, {});
             
-            const ownerTotals = Object.entries(groupedTractorCounts).map(([owner, counts]) => ({
-                owner,
-                total: counts.reduce((sum, c) => sum + c.quantity, 0)
-            })).sort((a, b) => b.total - a.total);
-            
+            const ownerTotals = Object.entries(groupedTractorCounts).map(([owner, counts]) => ({ owner, total: counts.reduce((sum, c) => sum + c.quantity, 0) })).sort((a, b) => b.total - a.total);
             const primaryOwner = ownerTotals.length > 0 ? ownerTotals[0].owner : null;
-            
-            const primaryOwnerHtml = primaryOwner ? `
-                <div class="bg-slate-100 p-3 rounded-md">
-                    <p class="font-medium text-slate-800">${primaryOwner}</p>
-                    <div class="pl-2 mt-1 space-y-1">
-                        ${groupedTractorCounts[primaryOwner].map(c => `
-                            <div class="flex justify-between text-xs">
-                                <span class="text-slate-600">- ${c.cutter}</span>
-                                <b>${c.quantity}</b>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>` : '';
-            
-            const complementOwnersHtml = ownerTotals.length > 1 ? `
-                <div class="mt-3">
-                    <p class="font-semibold text-slate-600 text-sm mb-1">Complemento de Outras Roças:</p>
-                    <div class="space-y-2 mt-1">
-                        ${ownerTotals.filter(o => o.owner !== primaryOwner).map(({owner}) => `
-                            <div class="bg-slate-100 p-3 rounded-md">
-                                <p class="font-medium text-slate-800">${owner}</p>
-                                <div class="pl-2 mt-1 space-y-1">
-                                     ${groupedTractorCounts[owner].map(c => `
-                                        <div class="flex justify-between text-xs">
-                                            <span class="text-slate-600">- ${c.cutter}</span>
-                                            <b>${c.quantity}</b>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                 </div>
-            ` : '';
-
+            const primaryOwnerHtml = primaryOwner ? `<div class="bg-slate-100 p-3 rounded-md"><p class="font-medium text-slate-800">${primaryOwner}</p><div class="pl-2 mt-1 space-y-1">${groupedTractorCounts[primaryOwner].map(c => `<div class="flex justify-between text-xs"><span class="text-slate-600">- ${c.cutter}</span><b>${c.quantity}</b></div>`).join('')}</div></div>` : '';
+            const complementOwnersHtml = ownerTotals.length > 1 ? `<div class="mt-3"><p class="font-semibold text-slate-600 text-sm mb-1">Complemento de Outras Roças:</p><div class="space-y-2 mt-1">${ownerTotals.filter(o => o.owner !== primaryOwner).map(({owner}) => `<div class="bg-slate-100 p-3 rounded-md"><p class="font-medium text-slate-800">${owner}</p><div class="pl-2 mt-1 space-y-1">${groupedTractorCounts[owner].map(c => `<div class="flex justify-between text-xs"><span class="text-slate-600">- ${c.cutter}</span><b>${c.quantity}</b></div>`).join('')}</div></div>`).join('')}</div></div>` : '';
             const noTractorCounts = !primaryOwner;
 
-            const cutterPaymentsInLoad = (load.fatherCounts || []).reduce((acc, tractorCount) => {
-                const cutterName = tractorCount.cutter;
-                const payment = tractorCount.quantity * (tractorCount.costPerHead || 0);
-                if (!acc[cutterName]) acc[cutterName] = { payment: 0, cost: (tractorCount.costPerHead || 0) };
-                acc[cutterName].payment += payment;
-                return acc;
-            }, {});
-
-            const cutterPaymentsHtmlInLoad = Object.keys(cutterPaymentsInLoad).length > 0 ? `
-                <div class="border-t border-slate-200 mt-4 pt-4">
-                    <h4 class="font-semibold text-slate-600 mb-2 text-sm text-left">Pagamentos da Carga (por Cortador)</h4>
-                    <div class="space-y-1 text-left cutter-payment-list">
-                        ${Object.entries(cutterPaymentsInLoad).map(([name, data]) => `
-                            <div class="flex justify-between text-xs items-center bg-slate-50 p-2 rounded-md" data-cutter-name="${name}">
-                                <div class="flex-1">
-                                    <span class="font-medium">${name}</span>
-                                    <div class="text-slate-500 cutter-cost-display">
-                                        Custo/cabeça: <span>${formatCurrency(data.cost)}</span>
-                                        <button class="edit-cutter-cost-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition">
-                                            <i data-lucide="pencil" class="w-4 h-4 pointer-events-none"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <span class="font-bold ml-2">${formatCurrency(data.payment)}</span>
+            const renderFinanceSection = (count, title, colorClass, yourProfit, costCutter, costOwner) => {
+                let costDetailsHtml;
+                 if (ownerPricePerHead > 0) {
+                    const netPaymentToOwner = costOwner - costCutter - totalAdditionalExpenses;
+                    costDetailsHtml = `
+                        <div class="mt-3 bg-white border border-slate-200 p-4 rounded-lg">
+                            <h5 class="font-semibold text-slate-600 text-sm mb-2 text-center">Pagamento ao Dono da Roça</h5>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between items-center"><span class="text-slate-500">Valor Bruto p/ Dono:</span><span class="font-bold">${formatCurrency(costOwner)}</span></div>
+                                <div class="flex justify-between items-center text-red-600"><span class="text-slate-500">(-) Custo Cortadores:</span><span class="font-bold">-${formatCurrency(costCutter)}</span></div>
+                                <div class="flex justify-between items-center text-red-600"><span class="text-slate-500">(-) Despesas Extras:</span><span class="font-bold">-${formatCurrency(totalAdditionalExpenses)}</span></div>
+                                <div class="flex justify-between items-center border-t pt-2 mt-2"><span class="font-semibold text-slate-700">VALOR LÍQUIDO A PAGAR:</span><span class="font-bold text-slate-800">${formatCurrency(netPaymentToOwner)}</span></div>
                             </div>
-                        `).join('')}
+                        </div>
+                    `;
+                } else {
+                    costDetailsHtml = `
+                         <div class="mt-3 bg-white border border-slate-200 p-4 rounded-lg">
+                            <h5 class="font-semibold text-slate-600 text-sm mb-2 text-center">Detalhes de Custos</h5>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between items-center"><span class="text-slate-500">Custo Cortadores:</span><span class="font-bold">${formatCurrency(costCutter)}</span></div>
+                                <div class="flex justify-between items-center"><span class="text-slate-500">Despesas Extras:</span><span class="font-bold">${formatCurrency(totalAdditionalExpenses)}</span></div>
+                                <div class="flex justify-between items-center border-t pt-2 mt-2"><span class="font-semibold text-slate-700">CUSTO TOTAL:</span><span class="font-bold text-red-600">${formatCurrency(costCutter + totalAdditionalExpenses)}</span></div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="border-t pt-4">
+                        <h4 class="font-semibold text-slate-700 mb-2 text-center text-sm">${title}</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-center">
+                            <div class="bg-slate-50 p-3 rounded-lg"><p class="text-xs font-semibold text-slate-500">RECEITA BRUTA</p><p class="text-lg font-bold text-slate-800">${formatCurrency(count * pricePerHead)}</p></div>
+                            <div class="${colorClass} p-3 rounded-lg"><p class="text-xs font-semibold">SEU LUCRO</p><p class="text-lg font-bold">${formatCurrency(yourProfit)}</p></div>
+                        </div>
+                        ${costDetailsHtml}
                     </div>
-                </div>
-            ` : '';
+                `;
+            }
 
             const loadCard = document.createElement('div');
             loadCard.className = 'load-card bg-white rounded-xl shadow-lg border border-slate-200 overflow-hidden transition-shadow hover:shadow-xl';
@@ -494,173 +490,42 @@ document.addEventListener('DOMContentLoaded', () => {
                             <p class="text-sm text-slate-500">Para: <span class="font-semibold text-slate-700">${load.companyName}</span></p>
                             <p class="text-sm text-slate-500">Pedido: <span class="font-semibold text-slate-700">${load.companyOrder || 0} cabeças</span></p>
                         </div>
-                        <button class="delete-load-btn text-slate-400 hover:text-red-500 p-1" data-id="${load.id}">
-                             <i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i>
-                        </button>
+                        <button class="delete-load-btn text-slate-400 hover:text-red-500 p-1" data-id="${load.id}"><i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i></button>
                     </div>
 
-                    <div class="border-b border-slate-200 mb-4">
-                        <nav class="-mb-px flex space-x-4" aria-label="Tabs">
-                            <button class="tab-button active" data-tab="summary">Resumo</button>
-                            <button class="tab-button" data-tab="details">Detalhes</button>
-                            <button class="tab-button" data-tab="finance">Financeiro</button>
-                        </nav>
-                    </div>
+                    <div class="border-b border-slate-200 mb-4"><nav class="-mb-px flex space-x-4" aria-label="Tabs"><button class="tab-button active" data-tab="summary">Resumo</button><button class="tab-button" data-tab="details">Detalhes</button><button class="tab-button" data-tab="finance">Financeiro</button></nav></div>
 
                     <div class="tab-panel" id="summary-${load.id}">
                          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                            <div class="bg-white border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center text-center">
-                                <i data-lucide="users" class="w-8 h-8 text-blue-500 mb-2"></i>
-                                <p class="text-xs font-semibold text-slate-500 uppercase">Total Cortadores</p>
-                                <p class="text-3xl font-bold text-blue-600">${cuttersTotal}</p>
-                            </div>
-                            <div class="bg-white border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center text-center">
-                                <i data-lucide="tractor" class="w-8 h-8 text-emerald-500 mb-2"></i>
-                                <p class="text-xs font-semibold text-slate-500 uppercase">Total Trator</p>
-                                <p class="text-3xl font-bold text-emerald-600">${fatherTotal}</p>
-                            </div>
-                            <div class="bg-white border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center text-center">
-                                <i data-lucide="arrow-left-right" class="w-8 h-8 ${diffCuttersFather === 0 ? 'text-slate-400' : 'text-red-500'} mb-2"></i>
-                                <p class="text-xs font-semibold text-slate-500 uppercase">Diferença</p>
-                                <p class="text-3xl font-bold ${diffCuttersFather === 0 ? 'text-slate-700' : 'text-red-600'}">${diffCuttersFather}</p>
-                            </div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center text-center"><i data-lucide="users" class="w-8 h-8 text-blue-500 mb-2"></i><p class="text-xs font-semibold text-slate-500 uppercase">Total Cortadores</p><p class="text-3xl font-bold text-blue-600">${cuttersTotal}</p></div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center text-center"><i data-lucide="tractor" class="w-8 h-8 text-emerald-500 mb-2"></i><p class="text-xs font-semibold text-slate-500 uppercase">Total Trator</p><p class="text-3xl font-bold text-emerald-600">${fatherTotal}</p></div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg flex flex-col items-center justify-center text-center"><i data-lucide="arrow-left-right" class="w-8 h-8 ${diffCuttersFather === 0 ? 'text-slate-400' : 'text-red-500'} mb-2"></i><p class="text-xs font-semibold text-slate-500 uppercase">Diferença</p><p class="text-3xl font-bold ${diffCuttersFather === 0 ? 'text-slate-700' : 'text-red-600'}">${diffCuttersFather}</p></div>
                         </div>
                     </div>
                     <div class="tab-panel hidden" id="details-${load.id}">
                         <div class="space-y-4 pt-2">
-                            <div class="bg-white border border-slate-200 p-4 rounded-lg">
-                                <div class="flex items-center gap-2 font-semibold text-slate-700 mb-3">
-                                    <i data-lucide="clipboard-check" class="w-5 h-5 text-slate-500"></i>
-                                    <h4 class="text-base">Conferência por Cortador</h4>
-                                </div>
-                                <div class="bg-slate-50 p-2 rounded-md">
-                                    <div class="grid grid-cols-4 gap-2 text-xs font-bold text-slate-500 border-b border-slate-200 pb-1 mb-1">
-                                        <span class="col-span-1">Cortador</span>
-                                        <span class="text-center">Contou</span>
-                                        <span class="text-center">Trator</span>
-                                        <span class="text-center">Dif.</span>
-                                    </div>
-                                    ${cutterDifferenceHtml.length > 0 ? cutterDifferenceHtml : '<p class="text-slate-500 text-xs text-center py-2">Nenhuma contagem para comparar.</p>'}
-                                </div>
-                            </div>
-                    
-                            <div class="bg-white border border-slate-200 p-4 rounded-lg">
-                                <div class="flex items-center gap-2 font-semibold text-slate-700 mb-3">
-                                    <i data-lucide="tractor" class="w-5 h-5 text-slate-500"></i>
-                                    <h4 class="text-base">Contagem do Trator por Roça</h4>
-                                </div>
-                                ${noTractorCounts ? '<p class="text-slate-500 text-xs italic p-2">Nenhuma contagem do trator adicionada.</p>' : `
-                                    <div class="space-y-3">
-                                        <div>
-                                            <p class="font-semibold text-slate-600 text-sm mb-1">Roça Principal:</p>
-                                            ${primaryOwnerHtml}
-                                        </div>
-                                        ${complementOwnersHtml}
-                                    </div>
-                                `}
-                            </div>
-                    
-                            <div class="bg-white border border-slate-200 p-4 rounded-lg">
-                                 <div class="flex items-center gap-2 font-semibold text-slate-700 mb-3">
-                                    <i data-lucide="info" class="w-5 h-5 text-slate-500"></i>
-                                    <h4 class="text-base">Informações Adicionais</h4>
-                                </div>
-                                <div class="space-y-3 text-sm p-2 bg-slate-50 rounded-md">
-                                    <p class="text-slate-600 flex justify-between items-center"><b>Contagem Final (Empresa):</b> <span class="font-bold ${load.companyFinalCount !== null ? 'text-amber-600' : 'text-slate-500'}">${load.companyFinalCount !== null ? load.companyFinalCount : 'Aguardando...'}</span></p>
-                                    <div class="border-t border-slate-200 pt-2"><p class="text-slate-600"><b>Anotações:</b></p><p class="pl-2 text-slate-700 italic">${load.notes || 'Nenhuma anotação.'}</p></div>
-                                </div>
-                            </div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg"><div class="flex items-center gap-2 font-semibold text-slate-700 mb-3"><i data-lucide="clipboard-check" class="w-5 h-5 text-slate-500"></i><h4 class="text-base">Conferência por Cortador</h4></div><div class="bg-slate-50 p-2 rounded-md"><div class="grid grid-cols-4 gap-2 text-xs font-bold text-slate-500 border-b border-slate-200 pb-1 mb-1"><span class="col-span-1">Cortador</span><span class="text-center">Contou</span><span class="text-center">Trator</span><span class="text-center">Dif.</span></div>${cutterDifferenceHtml.length > 0 ? cutterDifferenceHtml : '<p class="text-slate-500 text-xs text-center py-2">Nenhuma contagem para comparar.</p>'}</div></div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg"><div class="flex items-center gap-2 font-semibold text-slate-700 mb-3"><i data-lucide="tractor" class="w-5 h-5 text-slate-500"></i><h4 class="text-base">Contagem do Trator por Roça</h4></div>${noTractorCounts ? '<p class="text-slate-500 text-xs italic p-2">Nenhuma contagem do trator adicionada.</p>' : `<div class="space-y-3"><div><p class="font-semibold text-slate-600 text-sm mb-1">Roça Principal:</p>${primaryOwnerHtml}</div>${complementOwnersHtml}</div>`}</div>
+                            <div class="bg-white border border-slate-200 p-4 rounded-lg"><div class="flex items-center gap-2 font-semibold text-slate-700 mb-3"><i data-lucide="info" class="w-5 h-5 text-slate-500"></i><h4 class="text-base">Informações Adicionais</h4></div><div class="space-y-3 text-sm p-2 bg-slate-50 rounded-md"><p class="text-slate-600 flex justify-between items-center"><b>Contagem Final (Empresa):</b> <span class="font-bold ${load.companyFinalCount !== null ? 'text-amber-600' : 'text-slate-500'}">${load.companyFinalCount !== null ? load.companyFinalCount : 'Aguardando...'}</span></p><div class="border-t border-slate-200 pt-2"><p class="text-slate-600"><b>Anotações:</b></p><p class="pl-2 text-slate-700 italic">${load.notes || 'Nenhuma anotação.'}</p></div></div></div>
                         </div>
                     </div>
                     <div class="tab-panel hidden" id="finance-${load.id}">
                         <div class="space-y-4 pt-2">
-                            <div>
-                                <h4 class="font-semibold text-slate-700 mb-2 text-center text-sm">Projeção (Base Contagem Cortadores)</h4>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="dollar-sign" class="w-6 h-6 text-slate-400 mb-1"></i>
-                                        <p class="text-xs font-semibold text-slate-500">RECEITA BRUTA</p>
-                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(grossRevenueCutter)}</p>
-                                    </div>
-                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="users" class="w-6 h-6 text-slate-400 mb-1"></i>
-                                        <p class="text-xs font-semibold text-slate-500">CUSTO CORTADORES</p>
-                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(totalCutterCostCutter)}</p>
-                                    </div>
-                                    <div class="bg-blue-100 p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="trending-up" class="w-6 h-6 text-blue-500 mb-1"></i>
-                                        <p class="text-xs font-semibold text-blue-600">LUCRO ESPERADO</p>
-                                        <p class="text-lg font-bold text-blue-600">${formatCurrency(expectedProfitCutter)}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="border-t pt-4">
-                                <h4 class="font-semibold text-slate-700 mb-2 text-center text-sm">Projeção (Base Contagem Trator)</h4>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="dollar-sign" class="w-6 h-6 text-slate-400 mb-1"></i>
-                                        <p class="text-xs font-semibold text-slate-500">RECEITA BRUTA</p>
-                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(grossRevenueExpected)}</p>
-                                    </div>
-                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="users" class="w-6 h-6 text-slate-400 mb-1"></i>
-                                        <p class="text-xs font-semibold text-slate-500">CUSTO CORTADORES</p>
-                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(totalCutterCost)}</p>
-                                    </div>
-                                    <div class="bg-emerald-100 p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="trending-up" class="w-6 h-6 text-emerald-500 mb-1"></i>
-                                        <p class="text-xs font-semibold text-emerald-600">LUCRO ESPERADO</p>
-                                        <p class="text-lg font-bold text-emerald-600">${formatCurrency(expectedProfit)}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            ${load.companyFinalCount !== null ? `
-                            <div class="border-t pt-4">
-                                <h4 class="font-semibold text-slate-700 mb-2 text-center text-sm">Resultado Final (Base Contagem Empresa)</h4>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
-                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="dollar-sign" class="w-6 h-6 text-slate-400 mb-1"></i>
-                                        <p class="text-xs font-semibold text-slate-500">RECEITA BRUTA</p>
-                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(grossRevenueActual)}</p>
-                                    </div>
-                                    <div class="bg-slate-50 p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="users" class="w-6 h-6 text-slate-400 mb-1"></i>
-                                        <p class="text-xs font-semibold text-slate-500">CUSTO CORTADORES</p>
-                                        <p class="text-lg font-bold text-slate-800">${formatCurrency(totalCutterCost)}</p>
-                                    </div>
-                                    <div class="bg-amber-100 p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="check-circle-2" class="w-6 h-6 text-amber-500 mb-1"></i>
-                                        <p class="text-xs font-semibold text-amber-600">LUCRO REAL</p>
-                                        <p class="text-lg font-bold text-amber-600">${formatCurrency(actualProfit)}</p>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-center mt-3">
-                                    <div class="${financialDifferenceCutter === 0 ? 'bg-slate-100' : financialDifferenceCutter < 0 ? 'bg-red-100' : 'bg-green-100'} p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="arrow-left-right" class="w-6 h-6 ${financialDifferenceCutter === 0 ? 'text-slate-500' : financialDifferenceCutter < 0 ? 'text-red-500' : 'text-green-500'} mb-1"></i>
-                                        <p class="text-xs font-semibold ${financialDifferenceCutter === 0 ? 'text-slate-600' : financialDifferenceCutter < 0 ? 'text-red-600' : 'text-green-600'}">DIFERENÇA (Cortadores)</p>
-                                        <p class="text-lg font-bold ${financialDifferenceCutter === 0 ? 'text-slate-600' : financialDifferenceCutter < 0 ? 'text-red-600' : 'text-green-600'}">${formatCurrency(financialDifferenceCutter)}</p>
-                                    </div>
-                                    <div class="${financialDifferenceTractor === 0 ? 'bg-slate-100' : financialDifferenceTractor < 0 ? 'bg-red-100' : 'bg-green-100'} p-3 rounded-lg flex flex-col items-center justify-center">
-                                        <i data-lucide="arrow-left-right" class="w-6 h-6 ${financialDifferenceTractor === 0 ? 'text-slate-500' : financialDifferenceTractor < 0 ? 'text-red-500' : 'text-green-500'} mb-1"></i>
-                                        <p class="text-xs font-semibold ${financialDifferenceTractor === 0 ? 'text-slate-600' : financialDifferenceTractor < 0 ? 'text-red-600' : 'text-green-600'}">DIFERENÇA (Trator)</p>
-                                        <p class="text-lg font-bold ${financialDifferenceTractor === 0 ? 'text-slate-600' : financialDifferenceTractor < 0 ? 'text-red-600' : 'text-green-600'}">${formatCurrency(financialDifferenceTractor)}</p>
-                                    </div>
-                                </div>
-                            </div>
-                            ` : ''}
+                             <div class="bg-slate-50 p-3 rounded-lg text-center space-y-2">
+                                <div class="price-per-head-display-wrapper flex justify-center items-center gap-2"><p class="text-sm font-semibold text-slate-500">VALOR/CABEÇA RECEBIDO:</p><p class="text-lg font-bold text-slate-800">${formatCurrency(pricePerHead)}</p><button class="edit-price-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition"><i data-lucide="pencil" class="w-5 h-5 pointer-events-none"></i></button></div>
+                                ${ownerPricePerHead > 0 ? `<div class="owner-price-display-wrapper flex justify-center items-center gap-2"><p class="text-sm font-semibold text-slate-500">VALOR/CABEÇA P/ DONO:</p><p class="text-lg font-bold text-slate-800">${formatCurrency(ownerPricePerHead)}</p><button class="edit-owner-price-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition"><i data-lucide="pencil" class="w-5 h-5 pointer-events-none"></i></button></div>` : ''}
+                             </div>
+                             ${renderFinanceSection(cuttersTotal, 'Projeção (Base Contagem Cortadores)', 'bg-blue-100 text-blue-600', paiProfitExpectedCutter, totalCutterCostCutter, cuttersTotal * ownerPricePerHead)}
+                             ${renderFinanceSection(fatherTotal, 'Projeção (Base Contagem Trator)', 'bg-emerald-100 text-emerald-600', paiProfitExpectedTrator, totalCutterCost, fatherTotal * ownerPricePerHead)}
+                             ${finalCount > 0 ? renderFinanceSection(finalCount, 'Resultado Final (Base Contagem Empresa)', 'bg-amber-100 text-amber-600', paiProfitActual, totalCutterCost, finalCount * ownerPricePerHead) : ''}
                         </div>
-                        ${cutterPaymentsHtmlInLoad}
                     </div>
                 </div>
 
-                <div class="bg-slate-50 border-t border-slate-200 px-5 py-3 flex flex-wrap gap-2">
-                    <button class="add-count-main-btn flex-1 basis-full sm:basis-auto bg-slate-700 text-white font-semibold py-2 px-4 rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2" data-id="${load.id}">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Contagem
-                    </button>
-                    <button class="edit-note-btn flex-1 basis-1/2 sm:basis-auto bg-white border border-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-lg hover:bg-slate-100 transition-colors flex items-center justify-center gap-2" data-id="${load.id}">
-                        <i data-lucide="pencil" class="w-4 h-4"></i> Anotações
-                    </button>
+                <div class="bg-slate-50 border-t border-slate-200 px-5 py-3 flex flex-wrap gap-2 justify-center">
+                    <button class="add-count-main-btn flex-1 basis-full sm:basis-auto bg-slate-700 text-white font-semibold py-2 px-3 rounded-lg hover:bg-slate-800 transition flex items-center justify-center gap-2" data-id="${load.id}"><i data-lucide="plus" class="w-4 h-4"></i> Contagem</button>
+                    <button class="manage-expenses-btn flex-1 basis-1/2 sm:basis-auto bg-white border border-slate-300 text-slate-700 font-semibold py-2 px-3 rounded-lg hover:bg-slate-100 transition flex items-center justify-center gap-2" data-id="${load.id}"><i data-lucide="receipt" class="w-4 h-4"></i> Despesas</button>
+                    <button class="edit-note-btn flex-1 basis-1/2 sm:basis-auto bg-white border border-slate-300 text-slate-700 font-semibold py-2 px-3 rounded-lg hover:bg-slate-100 transition flex items-center justify-center gap-2" data-id="${load.id}"><i data-lucide="pencil" class="w-4 h-4"></i> Anotações</button>
                 </div>
             `;
             loadsContainer.appendChild(loadCard);
@@ -670,18 +535,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     // --- FUNÇÕES DE MANIPULAÇÃO DE DADOS (CRUD) ---
-    const addLoad = (date, companyName, companyOrder, pricePerHead, defaultCutterCost) => {
+    const addLoad = (data) => {
+        const { date, companyName, companyOrder, pricePerHead, defaultCutterCost, ownerPricePerHead } = data;
         const newLoad = {
-            id: 'load_' + Date.now(),
-            date,
-            companyName,
+            id: 'load_' + Date.now(), date, companyName,
             companyOrder: parseInt(companyOrder, 10),
             pricePerHead: parseSanitizedFloat(pricePerHead),
+            ownerPricePerHead: parseSanitizedFloat(ownerPricePerHead),
             defaultCutterCostPerHead: parseSanitizedFloat(defaultCutterCost),
-            cutterCounts: [],
-            fatherCounts: [],
-            companyFinalCount: null,
-            notes: ''
+            cutterCounts: [], fatherCounts: [], additionalExpenses: [],
+            companyFinalCount: null, notes: ''
         };
         state.loads.push(newLoad);
         update();
@@ -713,13 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
             load.cutterCounts.push({ id: newId, name: name, quantity: quantityToAdd });
         } else if (type === 'tractor') {
             if (!load.fatherCounts) load.fatherCounts = [];
-            load.fatherCounts.push({
-                id: newId,
-                owner: owner,
-                cutter: name,
-                quantity: quantityToAdd,
-                costPerHead: load.defaultCutterCostPerHead || 0
-            });
+            load.fatherCounts.push({ id: newId, owner, cutter: name, quantity: quantityToAdd, costPerHead: load.defaultCutterCostPerHead || 0 });
         }
         update();
     };
@@ -727,11 +584,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const deleteCount = (loadId, countId, type) => {
         const load = state.loads.find(l => l.id === loadId);
         if (!load) return;
-        if (type === 'cutter') {
-            load.cutterCounts = (load.cutterCounts || []).filter(c => c.id !== countId);
-        } else if (type === 'tractor') {
-            load.fatherCounts = (load.fatherCounts || []).filter(c => c.id !== countId);
-        }
+        if (type === 'cutter') load.cutterCounts = (load.cutterCounts || []).filter(c => c.id !== countId);
+        else if (type === 'tractor') load.fatherCounts = (load.fatherCounts || []).filter(c => c.id !== countId);
         update();
     };
 
@@ -739,11 +593,42 @@ document.addEventListener('DOMContentLoaded', () => {
         const load = state.loads.find(l => l.id === loadId);
         const quantity = parseInt(newQuantity, 10);
         if (!load || isNaN(quantity) || quantity < 0) return;
-
         const list = type === 'cutter' ? load.cutterCounts : load.fatherCounts;
         const item = (list || []).find(c => c.id === countId);
         if (item) item.quantity = quantity;
         update();
+    };
+
+    const addExpense = (loadId, description, amount) => {
+        const load = state.loads.find(l => l.id === loadId);
+        if (!load) return;
+        if (!load.additionalExpenses) load.additionalExpenses = [];
+        load.additionalExpenses.push({ id: `exp_${Date.now()}`, description, amount: parseSanitizedFloat(amount) });
+        update({ loadIdToKeepTab: loadId, activeTab: 'finance' });
+    };
+
+    const deleteExpense = (loadId, expenseId) => {
+        const load = state.loads.find(l => l.id === loadId);
+        if (load && load.additionalExpenses) {
+            load.additionalExpenses = load.additionalExpenses.filter(e => e.id !== expenseId);
+            update({ loadIdToKeepTab: loadId, activeTab: 'finance' });
+        }
+    };
+    
+    const updatePricePerHead = (loadId, newPrice) => {
+        const load = state.loads.find(l => l.id === loadId);
+        if (load) {
+            load.pricePerHead = parseSanitizedFloat(newPrice);
+            update({ loadIdToKeepTab: loadId, activeTab: 'finance' });
+        }
+    };
+    
+    const updateOwnerPricePerHead = (loadId, newPrice) => {
+        const load = state.loads.find(l => l.id === loadId);
+        if (load) {
+            load.ownerPricePerHead = parseSanitizedFloat(newPrice);
+            update({ loadIdToKeepTab: loadId, activeTab: 'finance' });
+        }
     };
 
     const updateCutterCostForLoad = (loadId, cutterName, newCost) => {
@@ -760,8 +645,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if(changed){
-            // This forces a state update recognized by the main update function
-            state.loads = [...state.loads];
+            state.loads = [...state.loads]; // Force state change detection
             update({ loadIdToKeepTab: loadId, activeTab: 'finance' });
         }
     };
@@ -788,13 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const renderList = () => {
                 const currentList = listType === 'cutter' ? state.cutters : (listType === 'owner' ? state.owners : state.companies);
-                itemListDiv.innerHTML = (currentList || []).map(item => `
-                    <div class="flex justify-between items-center bg-slate-100 p-2 rounded-md">
-                        <span class="font-medium">${item}</span>
-                        <button class="delete-item-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition" data-name="${item}" data-type="${listType}">
-                             <i data-lucide="x" class="w-5 h-5 pointer-events-none"></i>
-                        </button>
-                    </div>`).join('');
+                itemListDiv.innerHTML = (currentList || []).map(item => `<div class="flex justify-between items-center bg-slate-100 p-2 rounded-md"><span class="font-medium">${item}</span><button class="delete-item-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition" data-name="${item}" data-type="${listType}"><i data-lucide="x" class="w-5 h-5 pointer-events-none"></i></button></div>`).join('');
                 lucide.createIcons();
             };
 
@@ -834,17 +712,40 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!state.companies || state.companies.length === 0) companySelect.innerHTML = '<option value="" disabled selected>Cadastre uma empresa primeiro</option>';
             else state.companies.forEach(c => companySelect.add(new Option(c,c)));
             
+            const pricePerHeadInput = document.getElementById('pricePerHead');
+            const ownerPriceInput = document.getElementById('ownerPricePerHead');
+            const suggestionDiv = document.getElementById('owner-price-suggestion');
+
+            pricePerHeadInput.addEventListener('input', (e) => {
+                const receivedPrice = parseSanitizedFloat(e.target.value);
+                if (receivedPrice > 0) {
+                    const suggestedPrice = receivedPrice * 0.90;
+                    const suggestedPriceString = suggestedPrice.toFixed(2).replace('.', ',');
+                    
+                    suggestionDiv.innerHTML = `Sugestão p/ 10% de lucro: <button type="button" class="text-emerald-600 font-bold p-1 rounded hover:bg-emerald-100">${suggestedPriceString}</button>`;
+                    suggestionDiv.classList.remove('hidden');
+
+                    suggestionDiv.querySelector('button').addEventListener('click', () => {
+                        ownerPriceInput.value = suggestedPriceString;
+                    });
+                } else {
+                    suggestionDiv.classList.add('hidden');
+                    suggestionDiv.innerHTML = '';
+                }
+            });
+            
             document.getElementById('new-load-form').onsubmit = (e) => {
                 e.preventDefault();
                 const form = e.target;
                 if (!form.elements['company-select'].value) { alert('Por favor, cadastre e selecione uma empresa.'); return; }
-                addLoad(
-                    form.elements.loadDate.value, 
-                    form.elements['company-select'].value, 
-                    form.elements.companyOrder.value,
-                    form.elements.pricePerHead.value,
-                    form.elements.cutterCostPerHead.value
-                );
+                addLoad({
+                    date: form.elements.loadDate.value, 
+                    companyName: form.elements['company-select'].value, 
+                    companyOrder: form.elements.companyOrder.value,
+                    pricePerHead: form.elements.pricePerHead.value,
+                    defaultCutterCost: form.elements.cutterCostPerHead.value,
+                    ownerPricePerHead: form.elements.ownerPricePerHead.value
+                });
                 closeModal();
             };
         });
@@ -866,6 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (button.classList.contains('delete-load-btn')) requestDeleteLoad(id);
         else if (button.classList.contains('add-count-main-btn')) openModal('Adicionar Contagem', 'add-count-template', setupAddCountListeners);
         else if (button.classList.contains('edit-note-btn')) handleEditNote(id);
+        else if (button.classList.contains('manage-expenses-btn')) handleManageExpenses(id);
         else if (button.classList.contains('tab-button')) {
             const tab = button.dataset.tab;
             loadCard.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
@@ -879,25 +781,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentCost = (load.fatherCounts.find(fc => fc.cutter === cutterName) || {}).costPerHead || 0;
             
             const originalHTML = displayWrapper.innerHTML;
-            displayWrapper.innerHTML = `
-                <form class="edit-cost-form flex items-center gap-1">
-                    <input type="text" class="w-20 p-1 border border-slate-300 rounded-md text-xs" value="${String(currentCost).replace('.',',')}" />
-                    <button type="submit" class="p-1 text-emerald-600 hover:bg-emerald-100 rounded-full"><i data-lucide="check" class="w-5 h-5"></i></button>
-                    <button type="button" class="cancel-edit-cost p-1 text-slate-500 hover:bg-slate-100 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
-                </form>
-            `;
+            displayWrapper.innerHTML = `<form class="edit-cost-form flex items-center gap-1"><input type="text" class="w-20 p-1 border border-slate-300 rounded-md text-xs" value="${String(currentCost).replace('.',',')}" /><button type="submit" class="p-1 text-emerald-600 hover:bg-emerald-100 rounded-full"><i data-lucide="check" class="w-5 h-5"></i></button><button type="button" class="cancel-edit-cost p-1 text-slate-500 hover:bg-slate-100 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button></form>`;
             lucide.createIcons();
+            displayWrapper.querySelector('.cancel-edit-cost').onclick = () => { displayWrapper.innerHTML = originalHTML; lucide.createIcons(); };
+            displayWrapper.querySelector('.edit-cost-form').onsubmit = (ev) => { ev.preventDefault(); const newCost = ev.target.querySelector('input').value; updateCutterCostForLoad(id, cutterName, newCost); };
+        } else if (button.classList.contains('edit-price-btn')) {
+            const wrapper = button.closest('.price-per-head-display-wrapper');
+            const load = state.loads.find(l => l.id === id);
+            const currentPrice = load.pricePerHead || 0;
             
-            displayWrapper.querySelector('.cancel-edit-cost').onclick = () => {
-                displayWrapper.innerHTML = originalHTML;
-                lucide.createIcons();
-            };
-
-            displayWrapper.querySelector('.edit-cost-form').onsubmit = (ev) => {
-                ev.preventDefault();
-                const newCost = ev.target.querySelector('input').value;
-                updateCutterCostForLoad(id, cutterName, newCost);
-            };
+            const originalHTML = wrapper.innerHTML;
+            wrapper.innerHTML = `<form class="edit-price-form flex items-center justify-center gap-2"><p class="text-sm font-semibold text-slate-500">VALOR/CABEÇA RECEBIDO:</p><input type="text" class="w-24 p-1 border border-slate-300 rounded-md" value="${String(currentPrice).replace('.',',')}" /><button type="submit" class="p-1 text-emerald-600 hover:bg-emerald-100 rounded-full"><i data-lucide="check" class="w-5 h-5"></i></button><button type="button" class="cancel-edit-price p-1 text-slate-500 hover:bg-slate-100 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button></form>`;
+            lucide.createIcons();
+            wrapper.querySelector('.cancel-edit-price').onclick = () => { wrapper.innerHTML = originalHTML; lucide.createIcons(); };
+            wrapper.querySelector('.edit-price-form').onsubmit = (ev) => { ev.preventDefault(); const newPrice = ev.target.querySelector('input').value; updatePricePerHead(id, newPrice); };
+        } else if (button.classList.contains('edit-owner-price-btn')) {
+            const wrapper = button.closest('.owner-price-display-wrapper');
+            const load = state.loads.find(l => l.id === id);
+            const currentPrice = load.ownerPricePerHead || 0;
+            
+            const originalHTML = wrapper.innerHTML;
+            wrapper.innerHTML = `<form class="edit-owner-price-form flex items-center justify-center gap-2"><p class="text-sm font-semibold text-slate-500">VALOR/CABEÇA P/ DONO:</p><input type="text" class="w-24 p-1 border border-slate-300 rounded-md" value="${String(currentPrice).replace('.',',')}" /><button type="submit" class="p-1 text-emerald-600 hover:bg-emerald-100 rounded-full"><i data-lucide="check" class="w-5 h-5"></i></button><button type="button" class="cancel-edit-owner-price p-1 text-slate-500 hover:bg-slate-100 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button></form>`;
+            lucide.createIcons();
+            wrapper.querySelector('.cancel-edit-owner-price').onclick = () => { wrapper.innerHTML = originalHTML; lucide.createIcons(); };
+            wrapper.querySelector('.edit-owner-price-form').onsubmit = (ev) => { ev.preventDefault(); const newPrice = ev.target.querySelector('input').value; updateOwnerPricePerHead(id, newPrice); };
         }
     });
     
@@ -907,6 +814,59 @@ document.addEventListener('DOMContentLoaded', () => {
          document.getElementById('add-company-final-count-btn').addEventListener('click', handleCompanyFinalCount);
     }
     
+    const handleManageExpenses = (loadId) => {
+        const load = state.loads.find(l => l.id === loadId);
+        if (!load) return;
+
+        openModal('Gerenciar Despesas Adicionais', 'expenses-template', () => {
+            const form = document.getElementById('add-expense-form');
+            const listDiv = document.getElementById('expense-list');
+
+            const renderExpenses = () => {
+                const expenses = load.additionalExpenses || [];
+                if (expenses.length === 0) {
+                    listDiv.innerHTML = '<p class="text-slate-500 text-center py-2">Nenhuma despesa adicionada.</p>';
+                    return;
+                }
+                listDiv.innerHTML = expenses.map(e => `
+                    <div class="flex justify-between items-center bg-slate-50 p-2 rounded-md">
+                        <div>
+                            <span class="font-medium">${e.description}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="font-bold text-slate-800">${formatCurrency(e.amount)}</span>
+                            <button class="delete-expense-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition" data-id="${e.id}">
+                                <i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            };
+
+            form.onsubmit = e => {
+                e.preventDefault();
+                const description = e.target.elements['expense-description'].value;
+                const amount = e.target.elements['expense-amount'].value;
+                if (description && amount) {
+                    addExpense(loadId, description, amount);
+                    form.reset();
+                    renderExpenses();
+                }
+            };
+            
+            listDiv.addEventListener('click', e => {
+                const deleteBtn = e.target.closest('.delete-expense-btn');
+                if(deleteBtn){
+                    deleteExpense(loadId, deleteBtn.dataset.id);
+                    renderExpenses();
+                }
+            });
+
+            renderExpenses();
+        });
+    };
+
     const handleQuickAdd = (type) => {
         const load = state.loads.find(l => l.id === state.editingLoadId);
         if (!load) return;
@@ -920,61 +880,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const quantityInput = document.getElementById('item-quantity');
             const totalsDiv = document.getElementById('current-totals-list');
             
-            // Setup selects
             if (isTractor) {
                 const ownerSelect = document.getElementById('owner-select');
                 const cutterSelect = document.getElementById('cutter-select');
-                 if(!state.owners || state.owners.length === 0) ownerSelect.innerHTML = `<option value="" disabled selected>Cadastre um dono/roça</option>`;
-                else state.owners.forEach(o => ownerSelect.add(new Option(o, o)));
-                if(!state.cutters || state.cutters.length === 0) cutterSelect.innerHTML = `<option value="" disabled selected>Cadastre um cortador</option>`;
-                else state.cutters.forEach(c => cutterSelect.add(new Option(c, c)));
+                 if(!state.owners || state.owners.length === 0) ownerSelect.innerHTML = `<option value="" disabled selected>Cadastre um dono/roça</option>`; else state.owners.forEach(o => ownerSelect.add(new Option(o, o)));
+                if(!state.cutters || state.cutters.length === 0) cutterSelect.innerHTML = `<option value="" disabled selected>Cadastre um cortador</option>`; else state.cutters.forEach(c => cutterSelect.add(new Option(c, c)));
             } else {
                 const cutterSelect = document.getElementById('item-select');
-                if (!state.cutters || state.cutters.length === 0) cutterSelect.innerHTML = `<option disabled selected>Nenhum cortador cadastrado</option>`;
-                else state.cutters.forEach(item => cutterSelect.add(new Option(item, item)));
+                if (!state.cutters || state.cutters.length === 0) cutterSelect.innerHTML = `<option disabled selected>Nenhum cortador cadastrado</option>`; else state.cutters.forEach(item => cutterSelect.add(new Option(item, item)));
             }
             
             const renderTotals = () => {
                 const counts = isTractor ? (load.fatherCounts || []) : (load.cutterCounts || []);
-                if (counts.length === 0) {
-                    totalsDiv.innerHTML = '<p class="text-slate-500 text-center py-2">Nenhum valor adicionado.</p>';
-                    return;
-                }
+                if (counts.length === 0) { totalsDiv.innerHTML = '<p class="text-slate-500 text-center py-2">Nenhum valor adicionado.</p>'; return; }
 
                 if (isTractor) {
-                    const grouped = counts.reduce((acc, c) => {
-                        if (!acc[c.owner]) acc[c.owner] = [];
-                        acc[c.owner].push(c);
-                        return acc;
-                    }, {});
-                    totalsDiv.innerHTML = Object.entries(grouped).map(([owner, ownerCounts]) => `
-                        <div class="bg-slate-100 p-2 rounded-md">
-                           <p class="font-bold text-sm mb-1">${owner}</p>
-                           ${ownerCounts.map(item => `
-                                <div class="list-item-wrapper border-t border-slate-200" data-count-id="${item.id}">
-                                    <div class="flex justify-between items-center py-1 px-2">
-                                        <div><span class="font-medium text-xs">${item.cutter}</span>: <span class="font-bold text-base">${item.quantity}</span></div>
-                                        <div class="flex items-center gap-2">
-                                            <button class="edit-count-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition"><i data-lucide="pencil" class="w-5 h-5 pointer-events-none"></i></button>
-                                            <button class="delete-count-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition"><i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i></button>
-                                        </div>
-                                    </div>
-                                </div>
-                           `).join('')}
-                        </div>
-                    `).join('');
+                    const grouped = counts.reduce((acc, c) => { if (!acc[c.owner]) acc[c.owner] = []; acc[c.owner].push(c); return acc; }, {});
+                    totalsDiv.innerHTML = Object.entries(grouped).map(([owner, ownerCounts]) => `<div class="bg-slate-100 p-2 rounded-md"><p class="font-bold text-sm mb-1">${owner}</p>${ownerCounts.map(item => `<div class="list-item-wrapper border-t border-slate-200" data-count-id="${item.id}"><div class="flex justify-between items-center py-1 px-2"><div><span class="font-medium text-xs">${item.cutter}</span>: <span class="font-bold text-base">${item.quantity}</span></div><div class="flex items-center gap-2"><button class="edit-count-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition"><i data-lucide="pencil" class="w-5 h-5 pointer-events-none"></i></button><button class="delete-count-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition"><i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i></button></div></div></div>`).join('')}</div>`).join('');
                 } else {
-                     totalsDiv.innerHTML = counts.sort((a,b) => a.name.localeCompare(b.name)).map(item => `
-                        <div class="list-item-wrapper" data-count-id="${item.id}">
-                            <div class="flex justify-between items-center bg-slate-50 p-2 rounded">
-                                <div><span class="font-medium">${item.name}</span>: <span class="font-bold text-lg">${item.quantity}</span></div>
-                                <div class="flex items-center gap-2">
-                                    <button class="edit-count-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition"><i data-lucide="pencil" class="w-5 h-5 pointer-events-none"></i></button>
-                                    <button class="delete-count-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition"><i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                     `).join('');
+                     totalsDiv.innerHTML = counts.sort((a,b) => a.name.localeCompare(b.name)).map(item => `<div class="list-item-wrapper" data-count-id="${item.id}"><div class="flex justify-between items-center bg-slate-50 p-2 rounded"><div><span class="font-medium">${item.name}</span>: <span class="font-bold text-lg">${item.quantity}</span></div><div class="flex items-center gap-2"><button class="edit-count-btn p-1 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-100 transition"><i data-lucide="pencil" class="w-5 h-5 pointer-events-none"></i></button><button class="delete-count-btn p-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-100 transition"><i data-lucide="trash-2" class="w-5 h-5 pointer-events-none"></i></button></div></div></div>`).join('');
                 }
                 lucide.createIcons();
             };
@@ -987,40 +911,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const wrapper = e.target.closest('.list-item-wrapper');
                 const countId = wrapper.dataset.countId;
 
-                if (deleteBtn) {
-                    deleteCount(load.id, countId, type);
-                    renderTotals();
-                }
-
+                if (deleteBtn) { deleteCount(load.id, countId, type); renderTotals(); }
                 if (editBtn) {
                     const originalContentHTML = wrapper.innerHTML;
                     const list = isTractor ? load.fatherCounts : load.cutterCounts;
                     const item = (list || []).find(c => c.id === countId);
                     if (!item) return;
 
-                    wrapper.innerHTML = `
-                        <form class="edit-count-form flex items-center gap-2 p-2 bg-slate-50 rounded">
-                            <input type="number" value="${item.quantity}" class="w-full p-2 border border-slate-300 rounded-lg" />
-                            <button type="submit" class="p-2 text-emerald-600 hover:bg-emerald-100 rounded-full"><i data-lucide="check" class="w-5 h-5"></i></button>
-                            <button type="button" class="cancel-edit-btn p-2 text-slate-500 hover:bg-slate-200 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button>
-                        </form>
-                    `;
+                    wrapper.innerHTML = `<form class="edit-count-form flex items-center gap-2 p-2 bg-slate-50 rounded"><input type="number" value="${item.quantity}" class="w-full p-2 border border-slate-300 rounded-lg" /><button type="submit" class="p-2 text-emerald-600 hover:bg-emerald-100 rounded-full"><i data-lucide="check" class="w-5 h-5"></i></button><button type="button" class="cancel-edit-btn p-2 text-slate-500 hover:bg-slate-200 rounded-full"><i data-lucide="x" class="w-5 h-5"></i></button></form>`;
                     lucide.createIcons();
                     
-                    wrapper.querySelector('.cancel-edit-btn').onclick = (ev) => {
-                        ev.stopPropagation();
-                        wrapper.innerHTML = originalContentHTML;
-                        lucide.createIcons();
-                    };
-
+                    wrapper.querySelector('.cancel-edit-btn').onclick = (ev) => { ev.stopPropagation(); wrapper.innerHTML = originalContentHTML; lucide.createIcons(); };
                     wrapper.querySelector('input').addEventListener('click', ev => ev.stopPropagation());
-
-                    wrapper.querySelector('.edit-count-form').onsubmit = (ev) => {
-                        ev.preventDefault();
-                        const newQuantity = ev.target.querySelector('input').value;
-                        updateCount(load.id, countId, newQuantity, type);
-                        renderTotals();
-                    };
+                    wrapper.querySelector('.edit-count-form').onsubmit = (ev) => { ev.preventDefault(); const newQuantity = ev.target.querySelector('input').value; updateCount(load.id, countId, newQuantity, type); renderTotals(); };
                 }
             });
 
@@ -1043,7 +946,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 quantityInput.value = '';
                 quantityInput.focus();
             };
-            
             renderTotals();
         });
     }
@@ -1054,11 +956,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const load = state.loads.find(l => l.id === state.editingLoadId);
             if(load && load.companyFinalCount) form.elements['company-final-quantity'].value = load.companyFinalCount;
             
-            form.onsubmit = e => {
-                e.preventDefault();
-                addCompanyFinalCount(state.editingLoadId, form.elements['company-final-quantity'].value);
-                closeModal();
-            };
+            form.onsubmit = e => { e.preventDefault(); addCompanyFinalCount(state.editingLoadId, form.elements['company-final-quantity'].value); closeModal(); };
         });
     }
 
@@ -1067,12 +965,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('notes-form');
             const load = state.loads.find(l => l.id === loadId);
             if(load) form.elements['load-notes'].value = load.notes || '';
-
-            form.onsubmit = e => {
-                e.preventDefault();
-                saveNote(loadId, form.elements['load-notes'].value.trim());
-                closeModal();
-            }
+            form.onsubmit = e => { e.preventDefault(); saveNote(loadId, form.elements['load-notes'].value.trim()); closeModal(); }
         });
     };
 
@@ -1082,7 +975,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const monthSelect = document.getElementById('report-month-select');
             const summaryDiv = document.getElementById('report-summary');
             const detailsDiv = document.getElementById('report-details');
-
             const allLoads = state.loads || [];
 
             const years = [...new Set(allLoads.map(l => new Date(l.date).getUTCFullYear()))].sort((a, b) => b - a);
@@ -1096,7 +988,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const renderReportData = () => {
                 const selectedYear = parseInt(yearSelect.value, 10);
                 const selectedMonth = parseInt(monthSelect.value, 10);
-
                 if (!selectedYear) {
                     summaryDiv.innerHTML = '';
                     detailsDiv.innerHTML = '<p class="text-slate-500 text-center mt-8">Selecione um ano para visualizar o relatório.</p>';
@@ -1105,11 +996,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const filteredLoads = allLoads.filter(load => {
                     const loadDate = new Date(load.date);
-                    const loadYear = loadDate.getUTCFullYear();
-                    const loadMonth = loadDate.getUTCMonth() + 1;
-                    
-                    if (selectedYear !== loadYear) return false;
-                    if (selectedMonth !== 0 && selectedMonth !== loadMonth) return false;
+                    if (selectedYear !== loadDate.getUTCFullYear()) return false;
+                    if (selectedMonth !== 0 && (loadDate.getUTCMonth() + 1) !== selectedMonth) return false;
                     return true;
                 });
                 
@@ -1122,82 +1010,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 const summary = filteredLoads.reduce((acc, load) => {
                     const finalCount = load.companyFinalCount || 0;
                     const grossRevenue = finalCount * (load.pricePerHead || 0);
-                    const cutterCost = (load.fatherCounts || []).reduce((sum, item) => sum + (item.quantity * (item.costPerHead || 0)), 0);
+                    const totalCutterCost = (load.fatherCounts || []).reduce((sum, item) => sum + (item.quantity * (item.costPerHead || 0)), 0);
+                    const totalOwnerCost = (load.fatherCounts || []).reduce((sum, item) => sum + item.quantity, 0) * (load.ownerPricePerHead || 0);
+                    const totalAdditionalExpenses = (load.additionalExpenses || []).reduce((sum, e) => sum + e.amount, 0);
 
                     acc.totalLoads += 1;
                     acc.totalHeads += finalCount;
                     acc.totalRevenue += grossRevenue;
-                    acc.totalCost += cutterCost;
+                    acc.totalCost += totalCutterCost + totalOwnerCost + totalAdditionalExpenses;
                     return acc;
                 }, { totalLoads: 0, totalHeads: 0, totalRevenue: 0, totalCost: 0 });
 
                 summary.totalProfit = summary.totalRevenue - summary.totalCost;
 
-                summaryDiv.innerHTML = `
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-                        <div class="bg-slate-100 p-3 rounded-lg"><p class="text-xs font-semibold text-slate-500">TOTAL CARGAS</p><p class="text-xl font-bold">${summary.totalLoads}</p></div>
-                        <div class="bg-slate-100 p-3 rounded-lg"><p class="text-xs font-semibold text-slate-500">TOTAL PUPUNHAS</p><p class="text-xl font-bold">${summary.totalHeads}</p></div>
-                        <div class="bg-emerald-50 p-3 rounded-lg"><p class="text-xs font-semibold text-emerald-600">RECEITA BRUTA</p><p class="text-xl font-bold text-emerald-700">${formatCurrency(summary.totalRevenue)}</p></div>
-                        <div class="bg-red-50 p-3 rounded-lg"><p class="text-xs font-semibold text-red-600">CUSTO TOTAL</p><p class="text-xl font-bold text-red-700">${formatCurrency(summary.totalCost)}</p></div>
-                        <div class="bg-sky-50 p-3 rounded-lg col-span-2 md:col-span-1"><p class="text-xs font-semibold text-sky-600">LUCRO LÍQUIDO</p><p class="text-xl font-bold text-sky-700">${formatCurrency(summary.totalProfit)}</p></div>
-                    </div>
-                `;
+                summaryDiv.innerHTML = `<div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center"><div class="bg-slate-100 p-3 rounded-lg"><p class="text-xs font-semibold text-slate-500">TOTAL CARGAS</p><p class="text-xl font-bold">${summary.totalLoads}</p></div><div class="bg-slate-100 p-3 rounded-lg"><p class="text-xs font-semibold text-slate-500">TOTAL PUPUNHAS</p><p class="text-xl font-bold">${summary.totalHeads}</p></div><div class="bg-emerald-50 p-3 rounded-lg"><p class="text-xs font-semibold text-emerald-600">RECEITA BRUTA</p><p class="text-xl font-bold text-emerald-700">${formatCurrency(summary.totalRevenue)}</p></div><div class="bg-red-50 p-3 rounded-lg"><p class="text-xs font-semibold text-red-600">CUSTO TOTAL</p><p class="text-xl font-bold text-red-700">${formatCurrency(summary.totalCost)}</p></div><div class="bg-sky-50 p-3 rounded-lg col-span-2 md:col-span-1"><p class="text-xs font-semibold text-sky-600">LUCRO LÍQUIDO</p><p class="text-xl font-bold text-sky-700">${formatCurrency(summary.totalProfit)}</p></div></div>`;
                 
-                const cutterPayments = filteredLoads.reduce((acc, load) => {
-                    (load.fatherCounts || []).forEach(tractorCount => {
-                        const cutterName = tractorCount.cutter;
-                        if (!acc[cutterName]) {
-                            acc[cutterName] = { totalHeads: 0, totalPayment: 0 };
-                        }
-                        acc[cutterName].totalHeads += tractorCount.quantity;
-                        acc[cutterName].totalPayment += tractorCount.quantity * (tractorCount.costPerHead || 0);
-                    });
-                    return acc;
-                }, {});
-
-                const cutterPaymentsHtml = Object.keys(cutterPayments).length > 0 ? `
-                    <h4 class="font-semibold text-lg mb-2 mt-6">Pagamentos por Cortador</h4>
-                    <div class="space-y-2">
-                        ${Object.entries(cutterPayments).sort((a,b) => b[1].totalPayment - a[1].totalPayment).map(([name, data]) => `
-                             <div class="bg-slate-50 p-3 rounded-md flex justify-between items-center">
-                                <div>
-                                    <p class="font-medium">${name}</p>
-                                    <p class="text-xs text-slate-500">${data.totalHeads} cabeças (contagem do trator)</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="font-bold text-slate-800">${formatCurrency(data.totalPayment)}</p>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                ` : '';
-
-                detailsDiv.innerHTML = cutterPaymentsHtml + `
-                    <h4 class="font-semibold text-lg mb-2 ${cutterPaymentsHtml ? 'mt-6' : ''}">Detalhes das Cargas</h4>
-                    <div class="space-y-2">
-                        ${filteredLoads.sort((a,b) => new Date(b.date) - new Date(a.date)).map(load => {
+                detailsDiv.innerHTML = `<h4 class="font-semibold text-lg mb-2 mt-6">Detalhes das Cargas</h4><div class="space-y-2">${filteredLoads.sort((a,b) => new Date(b.date) - new Date(a.date)).map(load => {
                             const finalCount = load.companyFinalCount || 0;
                             const grossRevenue = finalCount * (load.pricePerHead || 0);
-                            const cutterCost = (load.fatherCounts || []).reduce((sum, item) => sum + (item.quantity * (item.costPerHead || 0)), 0);
-                            const netProfit = grossRevenue - cutterCost;
-
-                            return `
-                                <div class="bg-slate-50 p-3 rounded-md flex justify-between items-center">
-                                    <div>
-                                        <p class="font-medium">${new Date(load.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})} - ${load.companyName}</p>
-                                        <p class="text-xs text-slate-500">${finalCount} cabeças | Lucro: <span class="font-semibold">${formatCurrency(netProfit)}</span></p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="font-bold text-emerald-600">${formatCurrency(grossRevenue)}</p>
-                                        <p class="text-xs text-red-500">-${formatCurrency(cutterCost)}</p>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                `;
+                            const totalCutterCost = (load.fatherCounts || []).reduce((sum, item) => sum + (item.quantity * (item.costPerHead || 0)), 0);
+                            const totalOwnerCost = (load.fatherCounts || []).reduce((sum, item) => sum + item.quantity, 0) * (load.ownerPricePerHead || 0);
+                            const totalAdditionalExpenses = (load.additionalExpenses || []).reduce((sum, e) => sum + e.amount, 0);
+                            const netProfit = grossRevenue - totalCutterCost - totalOwnerCost - totalAdditionalExpenses;
+                            return `<div class="bg-slate-50 p-3 rounded-md flex justify-between items-center"><div><p class="font-medium">${new Date(load.date).toLocaleDateString('pt-BR', {timeZone: 'UTC'})} - ${load.companyName}</p><p class="text-xs text-slate-500">${finalCount} cabeças | Lucro: <span class="font-semibold">${formatCurrency(netProfit)}</span></p></div><div class="text-right"><p class="font-bold text-emerald-600">${formatCurrency(grossRevenue)}</p></div></div>`;
+                        }).join('')}</div>`;
             };
-
             yearSelect.onchange = renderReportData;
             monthSelect.onchange = renderReportData;
             renderReportData();
@@ -1207,35 +1044,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- PWA Service Worker ---
     const registerServiceWorker = () => {
         if ('serviceWorker' in navigator) {
-            const swScript = `
-                const CACHE_NAME = 'pupunha-gestor-cache-v14';
-                const urlsToCache = ['./'];
-                self.addEventListener('install', (event) => {
-                    self.skipWaiting();
-                    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(urlsToCache)));
-                });
-                self.addEventListener('fetch', (event) => {
-                     event.respondWith(caches.match(event.request).then((response) => response || fetch(event.request)));
-                });
-                self.addEventListener('activate', event => {
-                    const cacheWhitelist = [CACHE_NAME];
-                    event.waitUntil(
-                        caches.keys().then(cacheNames => Promise.all(
-                            cacheNames.map(cacheName => {
-                                if (cacheWhitelist.indexOf(cacheName) === -1) {
-                                    return caches.delete(cacheName);
-                                }
-                            })
-                        ))
-                    );
-                });
-            `;
-            
+            const swScript = `const CACHE_NAME = 'pupunha-gestor-cache-v16'; const urlsToCache = ['./']; self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache)).then(() => self.skipWaiting())) }); self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME ? caches.delete(k) : null))).then(() => self.clients.claim())) }); self.addEventListener('fetch', e => { e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))) });`;
             const blob = new Blob([swScript], { type: 'application/javascript' });
             const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl, { scope: './' })
-                .then(registration => console.log('SW registration successful: ', registration.scope))
-                .catch(error => console.log('SW registration failed: ', error));
+            navigator.serviceWorker.register(swUrl).then(r => console.log('SW registration successful', r.scope)).catch(e => console.log('SW registration failed', e));
         }
     };
 
@@ -1243,29 +1055,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const update = (options = {}) => {
         const { loadIdToKeepTab, activeTab: requestedTab } = options;
         let activeTabId = requestedTab || 'summary';
-
         if (loadIdToKeepTab && !requestedTab) {
             const loadCard = document.querySelector(`.load-card[data-load-id="${loadIdToKeepTab}"]`);
-            if (loadCard) {
-                const activeButton = loadCard.querySelector('.tab-button.active');
-                if (activeButton) {
-                    activeTabId = activeButton.dataset.tab;
-                }
-            }
+            if (loadCard) { const activeButton = loadCard.querySelector('.tab-button.active'); if (activeButton) activeTabId = activeButton.dataset.tab; }
         }
-        
         AppStorage.saveState();
         renderLoads();
-
         if (loadIdToKeepTab) {
             const loadCard = document.querySelector(`.load-card[data-load-id="${loadIdToKeepTab}"]`);
             if (loadCard) {
                 loadCard.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
                 loadCard.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-                
                 const tabButtonToActivate = loadCard.querySelector(`.tab-button[data-tab="${activeTabId}"]`);
                 const tabPanelToActivate = loadCard.querySelector(`#${activeTabId}-${loadIdToKeepTab}`);
-
                 if(tabButtonToActivate) tabButtonToActivate.classList.add('active');
                 if(tabPanelToActivate) tabPanelToActivate.classList.remove('hidden');
             }
@@ -1274,26 +1076,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const init = () => {
         const style = document.createElement('style');
-        style.textContent = `
-            .tab-button {
-                padding: 8px 12px;
-                border-radius: 6px;
-                font-weight: 500;
-                color: #475569; /* slate-600 */
-                background-color: transparent;
-                transition: all 0.2s ease-in-out;
-            }
-            .tab-button:hover {
-                 background-color: #f1f5f9; /* slate-100 */
-            }
-            .tab-button.active {
-                background-color: #059669; /* emerald-600 */
-                color: white;
-                box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-            }
-        `;
+        style.textContent = `.tab-button{padding:8px 12px;border-radius:6px;font-weight:500;color:#475569;background-color:transparent;transition:all .2s ease-in-out}.tab-button:hover{background-color:#f1f5f9}.tab-button.active{background-color:#059669;color:#fff;box-shadow:0 1px 3px 0 rgba(0,0,0,.1),0 1px 2px -1px rgba(0,0,0,.1)}`;
         document.head.appendChild(style);
-
         state = AppStorage.getState();
         update();
         lucide.createIcons();
@@ -1306,8 +1090,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-
-
-
 
