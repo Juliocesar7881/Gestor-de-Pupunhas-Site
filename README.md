@@ -1,4 +1,4 @@
-Link: https://gestordepupunhas.netlify.app/
+Link: https://gestordepupunhasfinanceiro.netlify.app/
 
 🌴 Gestor de Pupunha
 O Gestor de Pupunha é uma aplicação web moderna (PWA) projetada para simplificar e otimizar o gerenciamento de colheitas de pupunha. A ferramenta permite um controle detalhado desde a contagem inicial no campo até a análise financeira final, funcionando perfeitamente em dispositivos móveis e desktops, inclusive offline.
